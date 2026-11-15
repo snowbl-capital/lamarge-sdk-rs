@@ -38,7 +38,7 @@ Versions are `0.MINOR.PATCH`: a feature, a breaking change or a newly pinned dep
 1. On a branch, set `Cargo.toml`'s version and date its `CHANGELOG.md` section (`## [X.Y.Z] - YYYY-MM-DD`); merge it.
 2. Tag that commit of `main` `vX.Y.Z` and push the tag. `release.yml` checks the crate again, compares its API with the latest published version (`cargo semver-checks`), publishes it to crates.io by trusted publishing and creates the GitHub release from the changelog.
 
-Trusted publishing needs the crate to exist: the first version is published once by hand with a crates.io token (`cargo publish --locked` from the merged commit), whose tag then only creates the GitHub release. The crate's trusted publisher is then configured on crates.io: repository `snowbl-capital/lamarge-sdk-rs`, workflow `release.yml`, environment `crates-io`.
+Trusted publishing needs the crate to exist, so the first version publishes with a crates.io token stored as the `crates-io` environment's `CARGO_REGISTRY_TOKEN` secret (`gh secret set CARGO_REGISTRY_TOKEN --env crates-io`); `release.yml` uses it while it is set. Then the crate's trusted publisher is configured on crates.io (repository `snowbl-capital/lamarge-sdk-rs`, workflow `release.yml`, environment `crates-io`) and the secret deleted. A version already on crates.io, published by hand, only gets its GitHub release.
 
 ## Commits
 

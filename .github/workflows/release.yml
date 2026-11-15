@@ -1,6 +1,7 @@
-# A tag vX.Y.Z publishes that version to crates.io through trusted publishing: no token is stored.
-# The first version is published by hand; this repository, workflow and environment are then
-# registered as the crate's trusted publisher.
+# A tag vX.Y.Z publishes that version to crates.io through trusted publishing, or with the
+# crates-io environment's CARGO_REGISTRY_TOKEN secret while one is set. Trusted publishing needs
+# the crate to exist: the first version goes out with the secret, this repository, workflow and
+# environment are then registered as the crate's trusted publisher, and the secret is deleted.
 name: Release
 on:
   push:
@@ -47,13 +48,18 @@ jobs:
         run: |
           curl --silent --fail https://index.crates.io/la/ma/lamarge > index.jsonl || true
           echo "published=$(jq -s --arg version "${GITHUB_REF_NAME#v}" 'any(.vers == $version)' index.jsonl)" >> "$GITHUB_OUTPUT"
+      - name: Stored token
+        id: stored
+        env:
+          TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: echo "token=$([ -n "$TOKEN" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6
-        if: steps.published.outputs.published == 'false'
+        if: steps.published.outputs.published == 'false' && steps.stored.outputs.token == 'false'
         id: auth
       - if: steps.published.outputs.published == 'false'
         run: cargo publish --locked
         env:
-          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN || steps.auth.outputs.token }}
       # The release notes are the version's CHANGELOG section.
       - name: GitHub release
         env:
