@@ -86,6 +86,11 @@ pub enum Error {
     /// Another client fenced this bridge's deposit first: never send it from here.
     #[error("another client holds bridge {0}'s deposit: do not send")]
     DepositFenced(BridgeId),
+    /// The request sends transactions from the session's address (a Polygon conversion): run
+    /// it with a [`TransactionSender`](crate::TransactionSender). Nothing was asked of the
+    /// server.
+    #[error("a transaction sender is required")]
+    TransactionSenderRequired,
     /// A wait ran out; recover by running the same request (same client id) again.
     #[error("timed out waiting for {0}")]
     Timeout(&'static str),

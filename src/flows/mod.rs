@@ -26,6 +26,7 @@ use crate::{
 };
 
 mod bridge;
+mod conversion;
 mod maker;
 mod quoter;
 mod records;
@@ -35,6 +36,7 @@ mod transfer;
 mod withdraw;
 
 pub use bridge::*;
+pub use conversion::{ConversionPreview, ConversionTerms};
 pub use maker::*;
 pub use quoter::*;
 pub use take::*;

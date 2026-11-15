@@ -23,8 +23,9 @@ pub use alloy_signer::{self, Signer};
 pub use client::{Client, ClientBuilder, Environment, LighterRead, LighterReads, RetryPolicy};
 pub use error::{Error, Result};
 pub use host::{
-    HostError, HostStream, HttpAnswer, HttpExchange, HttpExchangeFuture, HttpRequest,
-    StreamConnector, StreamFuture,
+    HostError, HostStream, HttpAnswer, HttpExchange, HttpExchangeFuture, HttpRequest, SendError,
+    SendFuture, SendStatus, StatusFuture, StreamConnector, StreamFuture, Transaction,
+    TransactionSender,
 };
 pub use quoter::{CredentialToken, MakerCredential, QuoteIdentity, Quoter};
 pub use session::{SavedSession, Session, SessionToken};
