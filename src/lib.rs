@@ -7,6 +7,7 @@ mod deployments;
 pub mod error;
 pub mod events;
 pub mod flows;
+pub mod host;
 pub mod model;
 mod protocol;
 mod quoter;
@@ -21,5 +22,9 @@ pub use alloy_primitives::{self, Address, B256, U256};
 pub use alloy_signer::{self, Signer};
 pub use client::{Client, ClientBuilder, Environment, LighterRead, LighterReads, RetryPolicy};
 pub use error::{Error, Result};
+pub use host::{
+    HostError, HostStream, HttpAnswer, HttpExchange, HttpExchangeFuture, HttpRequest,
+    StreamConnector, StreamFuture,
+};
 pub use quoter::{CredentialToken, MakerCredential, QuoteIdentity, Quoter};
 pub use session::{SavedSession, Session, SessionToken};

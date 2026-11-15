@@ -15,7 +15,8 @@ use serde::{Serialize, de::DeserializeOwned};
 use tracing::Instrument as _;
 
 use crate::{
-    Environment, Error, LighterReads, Result, RetryPolicy,
+    Environment, Error, HttpExchange, HttpRequest, LighterReads, Result, RetryPolicy,
+    StreamConnector,
     error::{ApiError, DecodeError, TransportError, VenueApiError},
     types::VenueId,
 };
@@ -42,6 +43,14 @@ pub(crate) struct Inner {
     pub(crate) lighter_api: String,
     /// The caller's carrier of Lighter reads, if any.
     pub(crate) lighter_reads: Option<Arc<dyn LighterReads>>,
+    /// The host's transport of API requests, if any.
+    pub(crate) http_exchange: Option<Arc<dyn HttpExchange>>,
+    /// The host's connector of the event WebSocket, if any.
+    pub(crate) stream_connector: Option<Arc<dyn StreamConnector>>,
+    /// Deadline of each attempt: the HTTP client applies it itself, a host exchange through it.
+    pub(crate) timeout: Duration,
+    /// The user agent a host exchange sends.
+    pub(crate) user_agent: String,
     /// TLS for the event WebSocket (ALPN `http/1.1`), same roots and provider as HTTP.
     pub(crate) ws_tls: Arc<rustls::ClientConfig>,
     pub(crate) retry: RetryPolicy,
@@ -227,6 +236,9 @@ impl Inner {
     /// One attempt: the request, then the answer read up to the cap. `Err` only for transport
     /// failures (retryable), a refused bearer source or an oversized answer.
     async fn attempt(&self, call: &Call<'_>, url: &str, auth: Auth<'_>) -> Result<Answer> {
+        if let Some(exchange) = &self.http_exchange {
+            return self.attempt_by(exchange.as_ref(), call, url, auth).await;
+        }
         let mut headers = HeaderMap::new();
         headers.insert(header::ACCEPT, HeaderValue::from_static("application/json"));
         if let Some(value) = bearer_header(auth)? {
@@ -266,6 +278,64 @@ impl Inner {
                 MAX_ANSWER_BYTES,
             ))),
         })?;
+        Ok(Answer { status, request_id, retry_after, body })
+    }
+
+    /// One attempt through the host's exchange, within the per-attempt deadline.
+    async fn attempt_by(
+        &self,
+        exchange: &dyn HttpExchange,
+        call: &Call<'_>,
+        url: &str,
+        auth: Auth<'_>,
+    ) -> Result<Answer> {
+        let mut url = reqwest::Url::parse(url)
+            .map_err(|error| Error::InvalidRequest(format!("{url}: {error}").into()))?;
+        if !call.query.is_empty() {
+            url.query_pairs_mut().extend_pairs(&call.query);
+        }
+        let mut headers = vec![
+            ("accept", "application/json".to_owned()),
+            ("user-agent", self.user_agent.clone()),
+        ];
+        if let Some(value) = bearer_header(auth)? {
+            let value = value
+                .to_str()
+                .map_err(|_| Error::InvalidRequest("token is not a valid header value".into()))?;
+            headers.push(("authorization", value.to_owned()));
+        }
+        if call.body.is_some() {
+            headers.push(("content-type", "application/json".to_owned()));
+        }
+        let request = HttpRequest {
+            method: call.op.method.as_str(),
+            url: url.into(),
+            headers,
+            body: call.body.clone(),
+        };
+        let answer = tokio::time::timeout(self.timeout, exchange.send(request))
+            .await
+            .map_err(|_| Error::Transport(TransportError::timeout()))?
+            .map_err(|error| Error::Transport(TransportError::caller(error)))?;
+        let status = answer.status();
+        let request_id = answer.header_value("x-request-id").map(str::to_owned);
+        let span = tracing::Span::current();
+        span.record("http.response.status_code", status);
+        if let Some(id) = &request_id {
+            span.record("lamarge.request_id", id.as_str());
+        }
+        let retry_after = answer
+            .header_value("retry-after")
+            .and_then(|value| value.trim().parse::<u64>().ok())
+            .map(Duration::from_secs);
+        let body = answer.into_body();
+        if body.len() > MAX_ANSWER_BYTES {
+            return Err(Error::Decode(Box::new(DecodeError::too_large(
+                Some(status),
+                request_id,
+                MAX_ANSWER_BYTES,
+            ))));
+        }
         Ok(Answer { status, request_id, retry_after, body })
     }
 

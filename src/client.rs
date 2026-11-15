@@ -7,7 +7,8 @@ use reqwest::{Url, header::HeaderValue};
 use alloy_signer::Signer;
 
 use crate::{
-    Error, MakerCredential, Quoter, Result, SavedSession, Session, api,
+    Error, HttpExchange, MakerCredential, Quoter, Result, SavedSession, Session, StreamConnector,
+    api,
     model::Venue,
     protocol::{checks::deployment::check_deployment, signing::SigningKey},
     store::Journal,
@@ -134,6 +135,8 @@ impl Client {
             clock: None,
             lighter_api: None,
             lighter_reads: None,
+            http_exchange: None,
+            stream_connector: None,
         }
     }
 
@@ -317,6 +320,8 @@ pub struct ClientBuilder {
     clock: Option<Clock>,
     lighter_api: Option<String>,
     lighter_reads: Option<Arc<dyn LighterReads>>,
+    http_exchange: Option<Arc<dyn HttpExchange>>,
+    stream_connector: Option<Arc<dyn StreamConnector>>,
 }
 
 impl ClientBuilder {
@@ -351,6 +356,20 @@ impl ClientBuilder {
         self
     }
 
+    /// Sends every request to the API through `exchange` (default: the client's own HTTP
+    /// client). Lighter's reads keep their own carrier ([`Self::lighter_reads`]).
+    pub fn http_exchange(mut self, exchange: impl HttpExchange + 'static) -> Self {
+        self.http_exchange = Some(Arc::new(exchange));
+        self
+    }
+
+    /// Opens the event WebSocket's connection through `connector` (default: a TCP connection of
+    /// the client's own).
+    pub fn stream_connector(mut self, connector: impl StreamConnector + 'static) -> Self {
+        self.stream_connector = Some(Arc::new(connector));
+        self
+    }
+
     /// Replaces the wall clock.
     #[cfg(test)]
     pub(crate) fn clock(mut self, clock: Clock) -> Self {
@@ -379,6 +398,8 @@ impl ClientBuilder {
         }
         .map_err(|_| Error::Config("user agent suffix is not a valid header value".into()))?;
         let (http_tls, ws_tls) = transport::tls::configs()?;
+        let user_agent_text =
+            user_agent.to_str().map_err(|_| Error::Config("user agent".into()))?.to_owned();
         let http = reqwest::Client::builder()
             .tls_backend_preconfigured(http_tls)
             .redirect(reqwest::redirect::Policy::none())
@@ -396,6 +417,10 @@ impl ClientBuilder {
                 origin,
                 lighter_api: self.lighter_api.unwrap_or_else(|| transport::LIGHTER_API.to_owned()),
                 lighter_reads: self.lighter_reads,
+                http_exchange: self.http_exchange,
+                stream_connector: self.stream_connector,
+                timeout: self.timeout,
+                user_agent: user_agent_text,
                 ws_tls,
                 retry: self.retry,
                 environment: self.environment,
@@ -414,6 +439,8 @@ impl fmt::Debug for ClientBuilder {
             .field("retry", &self.retry)
             .field("user_agent_suffix", &self.user_agent_suffix)
             .field("lighter_reads", &self.lighter_reads.is_some())
+            .field("http_exchange", &self.http_exchange.is_some())
+            .field("stream_connector", &self.stream_connector.is_some())
             .finish_non_exhaustive()
     }
 }
