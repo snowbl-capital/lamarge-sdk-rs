@@ -1,0 +1,84 @@
+{
+  "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a61",
+  "quote_identity_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a30",
+  "expected_revision": "12",
+  "valid_until": 1794657900,
+  "lines": [
+    {
+      "venue": "hyperliquid",
+      "buy": "0.9995",
+      "sell": "1.0005",
+      "stock": "250000000",
+      "min_fill": "1000000"
+    }
+  ],
+  "drafts": [
+    {
+      "order_id": "0x8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b",
+      "venue": "polymarket",
+      "draft_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a60",
+      "sequence": 43,
+      "valid_until": 1794657900,
+      "expires_at": 1794661200,
+      "quote_size": "250000000",
+      "quotes": [
+        {
+          "venue": "hyperliquid",
+          "chain_id": 999,
+          "token": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+          "recipient": "0x6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b",
+          "supply": "250000000",
+          "receive": "250125000",
+          "min_fill": "1000000"
+        }
+      ],
+      "to_sign": [
+        {
+          "kind": "quote_set",
+          "signer": "0x8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d",
+          "typed_data": {
+            "types": {
+              "EIP712Domain": [
+                {
+                  "name": "name",
+                  "type": "string"
+                },
+                {
+                  "name": "version",
+                  "type": "string"
+                },
+                {
+                  "name": "chainId",
+                  "type": "uint256"
+                },
+                {
+                  "name": "verifyingContract",
+                  "type": "address"
+                }
+              ],
+              "PayTake": [
+                {
+                  "name": "payer",
+                  "type": "address"
+                }
+              ]
+            },
+            "primaryType": "PayTake",
+            "domain": {
+              "name": "LaMarge",
+              "version": "1",
+              "chainId": 999,
+              "verifyingContract": "0x9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e"
+            },
+            "message": {
+              "payer": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "cancels": [
+    "0x9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c9c"
+  ]
+}

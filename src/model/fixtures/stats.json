@@ -1,0 +1,41 @@
+{
+  "maker": {
+    "fills": 3,
+    "marked_fills": 2,
+    "volume_usd": "3",
+    "pnl_usd": "-0.0015",
+    "pnl_bps": "-5.5",
+    "pairs": [
+      {
+        "from": "hyperliquid",
+        "to": "polymarket",
+        "fills": 3,
+        "delivered": "3000000",
+        "pnl_usd": "-0.0015",
+        "pnl_bps": "-5"
+      }
+    ],
+    "daily": [
+      {
+        "day": "2026-11-13",
+        "fills": 3,
+        "pnl_usd": "-0.0015",
+        "cumulative_usd": "1.25"
+      }
+    ]
+  },
+  "assets": [
+    {
+      "venue": "lighter",
+      "chain_id": null,
+      "token": null,
+      "symbol": "USDC",
+      "decimals": 6,
+      "volume_30d": "3000000",
+      "taker_volume_30d": "1000000",
+      "maker_volume_30d": "2000000",
+      "trades_30d": 3
+    }
+  ],
+  "trades_30d": 3
+}

@@ -1,0 +1,52 @@
+{
+  "setup": [
+    {
+      "step": "permit",
+      "status": "done",
+      "reason": null,
+      "expires_at": null,
+      "needed_for": [
+        "make",
+        "pay"
+      ]
+    }
+  ],
+  "holdings": {
+    "available": "1500000",
+    "locked": "-20000",
+    "committed": "0",
+    "orders": "0",
+    "pool": "0",
+    "trades": "0",
+    "total": "1480000"
+  },
+  "portfolio": {
+    "revision": "12:1731585600000000",
+    "changed_at": "2026-11-14T12:00:00Z",
+    "pending": false
+  },
+  "venue": "hyperliquid",
+  "address": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23",
+  "venue_wallet": null,
+  "equity": "1500000",
+  "withdrawable": "1400000",
+  "withdrawal_fee": "0",
+  "withdrawal_reserve": "40000",
+  "withdrawable_estimated": false,
+  "mode": "standard",
+  "has_account": true,
+  "wallet": "0",
+  "xyz": {
+    "equity": "-1500",
+    "withdrawable": "0",
+    "read_at": null
+  },
+  "chain_balance": "250000",
+  "escrow_balance": "0",
+  "deposit_balance": "0",
+  "deposit_address": "0x6d1e7cde53ba9467b783cb7c530ce054e9f8a1b2",
+  "read_at": "2026-11-14T12:00:00Z",
+  "error": null,
+  "chain_read_at": "2026-11-14T12:00:00Z",
+  "chain_error": null
+}

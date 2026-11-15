@@ -1,0 +1,28 @@
+{
+  "cursor": "1007",
+  "books": [
+    {
+      "order_id": "0x8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b",
+      "sequence": 7,
+      "revision": "12",
+      "to": "polymarket",
+      "quotes": [
+        {
+          "venue": "hyperliquid",
+          "chain_id": 999,
+          "token": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+          "recipient": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23",
+          "supply": "250000000",
+          "receive": "250125000",
+          "min_fill": "1000000",
+          "quote_index": 0,
+          "available": "120000000"
+        }
+      ],
+      "available": "120000000",
+      "valid_until": "2026-11-14T12:00:00Z",
+      "expires_at": "2026-11-14T12:00:00Z"
+    }
+  ],
+  "server_time": "2026-11-14T12:00:00Z"
+}

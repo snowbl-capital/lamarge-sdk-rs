@@ -1,0 +1,28 @@
+{
+  "status": "ok",
+  "ready": true,
+  "server_time": "2026-11-14T12:00:00Z",
+  "pending_transactions": 0,
+  "journal_unpublished": 0,
+  "journal_oldest_unpublished_seconds": null,
+  "chains": [
+    {
+      "venue": "hyperliquid",
+      "chain_id": 999,
+      "ready": true,
+      "observations_ready": true,
+      "oldest_pending_seconds": null,
+      "pending_transactions": 0,
+      "integrity_checked_at": "2026-11-14T12:00:00Z",
+      "integrity_completed_at": "2026-11-14T12:00:00Z",
+      "integrity_error": null,
+      "integrity_mismatch": false,
+      "block": "18100000",
+      "finalized_block": "18099990",
+      "checked_at": "2026-11-14T12:00:00Z",
+      "finalized_at": "2026-11-14T12:00:00Z",
+      "error": null,
+      "operator_gas": "250000000000000000"
+    }
+  ]
+}

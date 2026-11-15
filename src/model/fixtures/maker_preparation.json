@@ -1,0 +1,134 @@
+{
+  "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a40",
+  "client_request_id": "pool-pm-1",
+  "state": "accepted",
+  "venue": "polymarket",
+  "order": {
+    "preparation_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a40",
+    "capital_pool": true,
+    "held_in": "escrow",
+    "id": "0x8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b",
+    "venue": "polymarket",
+    "owner_address": "0x6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b",
+    "state": "live",
+    "error": null,
+    "amount": "500000000",
+    "held": "380000000",
+    "delivery_fee": "0",
+    "revision": "311",
+    "available_to_quote": "375000000",
+    "received_by_venue": [
+      {
+        "venue": "hyperliquid",
+        "amount": "120060000"
+      }
+    ],
+    "quotable": "250000000",
+    "filled": "120000000",
+    "last_sequence": 42,
+    "quote_set": {
+      "sequence": 42,
+      "expires_at": "2026-11-14T13:00:00Z",
+      "quotes": [
+        {
+          "venue": "hyperliquid",
+          "chain_id": 999,
+          "token": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+          "recipient": "0x6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b",
+          "supply": "250000000",
+          "receive": "250125000",
+          "min_fill": "1000000",
+          "available": "120000000",
+          "offered": "250000000"
+        }
+      ],
+      "signature": "0x333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333331c",
+      "created_at": "2026-11-14T11:59:58Z",
+      "valid_until": "2026-11-14T12:01:00Z",
+      "quote_size": "250000000",
+      "identity_generation": "3",
+      "active": true
+    },
+    "margin_move": {
+      "venue": "polymarket",
+      "amount": "100000000",
+      "venue_ref": null,
+      "state": "queued",
+      "error": null,
+      "at": "2026-11-14T11:00:00Z"
+    },
+    "transactions": [
+      {
+        "kind": "fund",
+        "chain_id": 137,
+        "hash": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+        "status": "mined",
+        "error": null,
+        "at": "2026-11-14T12:00:04Z"
+      }
+    ],
+    "created_at": "2026-11-14T10:00:00Z",
+    "updated_at": "2026-11-14T11:59:58Z",
+    "client_order_id": "pool-pm-1",
+    "quote_identity_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a30",
+    "quote_signer": "0x8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d"
+  },
+  "to_sign": [
+    {
+      "kind": "fund",
+      "signer": "0x6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b",
+      "typed_data": {
+        "types": {
+          "EIP712Domain": [
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "version",
+              "type": "string"
+            },
+            {
+              "name": "chainId",
+              "type": "uint256"
+            },
+            {
+              "name": "verifyingContract",
+              "type": "address"
+            }
+          ],
+          "PayTake": [
+            {
+              "name": "payer",
+              "type": "address"
+            }
+          ]
+        },
+        "primaryType": "PayTake",
+        "domain": {
+          "name": "LaMarge",
+          "version": "1",
+          "chainId": 999,
+          "verifyingContract": "0x9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e"
+        },
+        "message": {
+          "payer": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+        }
+      }
+    }
+  ],
+  "sequence": null,
+  "expires_at": "2026-11-14T11:00:00Z",
+  "expected_revision": "310",
+  "intent": {
+    "amount": "100000000",
+    "quote_identity_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a30",
+    "funding_source": "venue"
+  },
+  "funding": {
+    "existing_available": "0",
+    "wallet_amount": "0",
+    "venue_amount": "100000000",
+    "idle_amount": "0"
+  }
+}

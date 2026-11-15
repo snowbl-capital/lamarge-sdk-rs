@@ -1,0 +1,70 @@
+{
+  "id": "polymarket",
+  "name": "Polymarket",
+  "enabled": true,
+  "settlement": "escrow",
+  "chain": {
+    "direct_deposit": true,
+    "direct_withdrawal": false,
+    "wallet_funding": {
+      "conversion": {
+        "token": "0x6d1e7cde53ba9467b783cb7c530ce054e9f8a1b2",
+        "symbol": "USDC",
+        "decimals": 6,
+        "converter": "0xb2bd46c4e0e4ef9a0c5b6b8ea0a7d3d42b27de4f",
+        "min_out_bps": 9995,
+        "minimum": "10000"
+      },
+      "token": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+      "symbol": "pUSD",
+      "decimals": 6
+    },
+    "wallet": {
+      "token": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+      "symbol": "USDC",
+      "decimals": 6,
+      "minimum": "10000"
+    },
+    "id": 137,
+    "escrow": "0x3100a1b2c3d4e5f60718293a4b5c6d7e8f901234",
+    "token": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+    "symbol": "pUSD",
+    "decimals": 6,
+    "permit": {
+      "name": "USD Coin",
+      "version": "2"
+    }
+  },
+  "margin_move": {
+    "primary_type": "HyperliquidTransaction:SendAsset",
+    "types": {
+      "HyperliquidTransaction:SendAsset": [
+        {
+          "name": "hyperliquidChain",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        }
+      ]
+    },
+    "domain": {
+      "name": "HyperliquidSignTransaction",
+      "version": "1",
+      "chainId": 999,
+      "verifyingContract": "0x0000000000000000000000000000000000000000"
+    },
+    "fixed": {
+      "hyperliquidChain": "Mainnet",
+      "token": "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
+    },
+    "amount": "decimal",
+    "destinations": [
+      "signer",
+      "wallet",
+      "escrow"
+    ]
+  },
+  "release_minimum": "5000000"
+}

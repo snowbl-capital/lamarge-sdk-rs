@@ -1,0 +1,55 @@
+{
+  "kind": "pay_take",
+  "signer": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+  "fill_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a01",
+  "typed_data": {
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "PayTake": [
+        {
+          "name": "payer",
+          "type": "address"
+        }
+      ]
+    },
+    "primaryType": "PayTake",
+    "domain": {
+      "name": "LaMarge",
+      "version": "1",
+      "chainId": 999,
+      "verifyingContract": "0x9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e"
+    },
+    "message": {
+      "payer": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+    }
+  },
+  "attestation": {
+    "signature": "0x444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444441c",
+    "terms": {
+      "take": "0x0192f1c23d4e7f008a1b2c3d4e5f6a0100000000000000000000000000000000",
+      "from": "aster",
+      "to": "polymarket",
+      "recipient": "0x7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c",
+      "token": "0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb",
+      "amountOut": "4997500",
+      "payBy": 1794657690
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "message": "app.lamarge.trade wants you to sign in with your Ethereum account:\n0x2c7536E3605D9C16a7a3D7b1898e529396a65c23\n\nSign in to LaMarge.\n\nURI: https://app.lamarge.trade\nVersion: 1\nChain ID: 1\nNonce: 0123456789abcdef\nIssued At: 2026-11-14T12:00:00Z\nExpiration Time: 2026-11-14T12:10:00Z",
+  "nonce": "0123456789abcdef",
+  "expires_at": "2026-11-14T12:10:00Z"
+}

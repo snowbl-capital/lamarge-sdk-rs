@@ -1,0 +1,10 @@
+{
+  "take": "0x0192f1c23d4e7f008a1b2c3d4e5f6a0100000000000000000000000000000000",
+  "from": "aster",
+  "to": "polymarket",
+  "recipient": "0x7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c",
+  "token": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+  "amountOut": "4995002",
+  "payBy": 1794657690,
+  "destination": "wallet"
+}

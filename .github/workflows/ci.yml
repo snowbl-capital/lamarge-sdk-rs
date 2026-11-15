@@ -1,0 +1,105 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # The read-only tests against production, weekly and on demand.
+  schedule:
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      live:
+        description: Also run the read-only tests against production
+        type: boolean
+        default: true
+permissions:
+  contents: read
+jobs:
+  check:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The runner's default toolchain is not rust-toolchain.toml's: rust-cache keys on the default.
+      - name: Select pinned Rust toolchain
+        run: |
+          rustup toolchain install --profile minimal
+          rustup default "$(rustup show active-toolchain | cut -d ' ' -f 1)"
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-hack
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --all-features --locked -- -D warnings
+      - run: cargo clippy --all-targets --no-default-features --features ring --locked -- -D warnings
+      - run: cargo test --all-features --locked
+      - run: cargo doc --all-features --no-deps --locked
+        env:
+          RUSTDOCFLAGS: -D warnings
+      # --no-dev-deps rewrites the manifest and lockfile for the run, so it cannot be --locked; the steps above are.
+      - run: cargo hack check --feature-powerset --at-least-one-of aws-lc-rs,ring --no-dev-deps
+
+  msrv:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Select pinned Rust toolchain
+        run: |
+          rustup toolchain install --profile minimal
+          rustup default "$(rustup show active-toolchain | cut -d ' ' -f 1)"
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-hack
+      # Installs and builds with Cargo.toml's rust-version.
+      - run: cargo hack --rust-version check --all-features --locked
+
+  docsrs:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: nightly
+      # As docs.rs builds it (Cargo.toml's package.metadata.docs.rs).
+      - run: cargo +nightly doc --all-features --no-deps --locked
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+  deny:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: rustup toolchain install --profile minimal
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-deny@0.20.2
+      - name: Advisories, licences and sources
+        run: cargo deny check
+
+  live:
+    if: github.event_name == 'schedule' || inputs.live
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Select pinned Rust toolchain
+        run: |
+          rustup toolchain install --profile minimal
+          rustup default "$(rustup show active-toolchain | cut -d ' ' -f 1)"
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      # Read-only: never signs or writes.
+      - run: cargo test --locked --test live -- --ignored

@@ -1,0 +1,75 @@
+{
+  "data": [
+    {
+      "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a01",
+      "fills": [
+        {
+          "funding": "venue",
+          "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a01",
+          "take_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a01",
+          "role": "taker",
+          "order_id": "0x8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b",
+          "sequence": 42,
+          "quote_index": 0,
+          "swap_id": "0xd4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+          "hashlock": "0xe5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+          "secret": "0xf6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+          "from_venue": "hyperliquid",
+          "to_venue": "polymarket",
+          "amount_out": "4997500",
+          "amount_in": "5002500",
+          "taker_fee": "2500",
+          "taker_fee_bps": 5,
+          "taker_fee_venue": "hyperliquid",
+          "maker_out": "4997500",
+          "maker_in": "5000000",
+          "payer": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+          "maker_owner": "0x6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b",
+          "maker_recipient": "0x6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b",
+          "taker_recipient": "0x7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c",
+          "destination": "wallet",
+          "received": {
+            "token": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+            "amount": "4997500",
+            "sender": "0x9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e"
+          },
+          "payment_leg": "CLAIMED",
+          "payment_destination": "escrow",
+          "maker_destination": "wallet",
+          "signed_at": "2026-11-14T12:00:02Z",
+          "payment_locked_at": "2026-11-14T12:00:04Z",
+          "maker_claimed_at": "2026-11-14T12:00:09.250Z",
+          "maker_leg": "CLAIMED",
+          "state": "SETTLED",
+          "reason": null,
+          "pay_by": "2026-11-14T12:01:30Z",
+          "t1": "2026-11-14T13:00:00Z",
+          "t2": "2026-11-15T12:00:00Z",
+          "deliver_by": null,
+          "report_by": null,
+          "delivery_to": null,
+          "delivery_hash": null,
+          "delivery_fee": "0",
+          "maker_accept_by": "2026-11-14T12:00:17Z",
+          "maker_accepted_at": "2026-11-14T12:00:03Z",
+          "payment_verified_at": "2026-11-14T12:00:05Z",
+          "created_at": "2026-11-14T12:00:00Z",
+          "updated_at": "2026-11-14T12:00:10Z",
+          "settled_at": "2026-11-14T12:00:10Z",
+          "transactions": [
+            {
+              "kind": "payment",
+              "chain_id": 999,
+              "hash": "0xc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+              "status": "mined",
+              "error": null,
+              "at": "2026-11-14T12:00:04Z"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "next_cursor": "c2",
+  "has_more": true
+}

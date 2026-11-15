@@ -1,0 +1,23 @@
+{
+  "as_of": "2026-11-14T12:00:00Z",
+  "venues": [
+    {
+      "venue": "hyperliquid",
+      "symbol": "USDC",
+      "decimals": 6,
+      "best_buy": "0.9995",
+      "best_sell": "1.0005",
+      "liquidity": "250000000000",
+      "volume_24h": "1250000000"
+    },
+    {
+      "venue": "aster",
+      "symbol": "USDC",
+      "decimals": 18,
+      "best_buy": null,
+      "best_sell": null,
+      "liquidity": "250000000000",
+      "volume_24h": "1250000000"
+    }
+  ]
+}

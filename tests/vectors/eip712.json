@@ -1,0 +1,14 @@
+{
+  "aster_approval": "0x6e96e2680b6ede3a826abd7d832bc14fc6400369bcc4294cc0dd3192e1cc4e79",
+  "aster_transfer": "0x2846cec910718151ab286ae184ba647c1f4a5363a89558ccf8e98fc6401dfb14",
+  "close_orders": "0x1511b8d4b7bd42aa91391ac2d56b8c02092d8fb4fab1fdeffc29fd215e96d577",
+  "fund_offer": "0x5e8ffc436b8405fb7e93ab6f621e24720f20deb56683e75e2c6ea0e462af1939",
+  "pay_take": "0x1af953bad9453e5879701803f7655bf05cdf0f10792a20a3a8d82fc4609642ee",
+  "permit": "0x69e74be16b359619c89e234e1e0d48762748d2764d00da15124d85a84857726f",
+  "polymarket_internal_transfer": "0xcfde73a1b855ef02895008c221e5e7feabfd36168445b0ade9961bfa408ba337",
+  "polymarket_withdraw": "0xd9ef9a06dce6c1b1614a9c5b933f7309fc901f458d7a2f96f5134c72e6fa4e27",
+  "quote_set": "0x67f371b9fb24951c46d65e819f25642377d8794ef6795dbd2a4bfe512c0625a4",
+  "quote_set_lighter": "0x90cd4e19ccdd59716c30d8344ccdfcd88c3661d0adcf87070f4403713ae053c0",
+  "send_asset_send": "0xddcb349ae4d5bda9bad1ee4e64bc149ccd9eaf0506a64fc7a8f45cb8f18d2d53",
+  "send_asset_withdrawal": "0x4a0374b4cac973afbbc7427d8bb2b6c8eff7de94eba9f5af628b8eea4ea976e8"
+}

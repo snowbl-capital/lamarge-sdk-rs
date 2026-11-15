@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "destination": "venue",
+      "received": null,
+      "id": "0190f3a4-7b2c-7d10-8e4f-000000000004",
+      "from": "hyperliquid",
+      "to": "polymarket",
+      "amount_in": "1000500",
+      "amount_out": "1000000",
+      "taker_fee": "500",
+      "taker_fee_bps": 5,
+      "taker_fee_venue": "hyperliquid",
+      "maker_in": "1000000",
+      "maker_out": "1000000",
+      "settled_at": "2026-11-14T12:00:00Z",
+      "taker_address": "0xb2bd46c4e0e4ef9a0c5b6b8ea0a7d3d42b27de4f"
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false
+}

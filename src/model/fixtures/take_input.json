@@ -1,0 +1,14 @@
+{
+  "payer": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23",
+  "funding": "wallet",
+  "from": "hyperliquid",
+  "to": "polymarket",
+  "amount_in": "5002500",
+  "min_out": "4990000",
+  "transfer_intent_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a40",
+  "client_take_id": "take-0042",
+  "max_parts": 4,
+  "max_fee_bps": 5,
+  "destination": "wallet",
+  "recipient": "0x7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c"
+}

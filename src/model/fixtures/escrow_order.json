@@ -1,0 +1,10 @@
+{
+  "venue": "hyperliquid",
+  "order_id": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "owner": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23",
+  "available": "250000",
+  "operator": "0xb2bd46c4e0e4ef9a0c5b6b8ea0a7d3d42b27de4f",
+  "managed": true,
+  "in_balances": true,
+  "closing": false
+}

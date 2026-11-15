@@ -1,0 +1,128 @@
+{
+  "chains": {
+    "hyperliquid": {
+      "id": 999,
+      "token": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+      "decimals": 6,
+      "permit": {
+        "name": "USDC",
+        "version": "2"
+      },
+      "wallet_token": "0xb88339cb7199b77e23db6e890353e22632ba630f"
+    },
+    "polymarket": {
+      "id": 137,
+      "token": "0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb",
+      "decimals": 6,
+      "permit": {
+        "name": "Polymarket USD",
+        "version": "1"
+      },
+      "wallet_token": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
+    },
+    "aster": {
+      "id": 56,
+      "token": "0x55d398326f99059ff775485246999027b3197955",
+      "decimals": 18,
+      "permit": null,
+      "wallet_token": null
+    },
+    "lighter": {
+      "id": 304,
+      "token": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "decimals": 6,
+      "permit": null,
+      "wallet_token": null
+    },
+    "gmx": {
+      "id": 42161,
+      "token": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+      "decimals": 6,
+      "permit": {
+        "name": "USD Coin",
+        "version": "2"
+      },
+      "wallet_token": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+    }
+  },
+  "escrows": [
+    {
+      "chain_id": 999,
+      "address": "0x3100b7b49c0f9631c6af25877b5a4e13a47afad6",
+      "environment": "production"
+    },
+    {
+      "chain_id": 137,
+      "address": "0x3100b7b49c0f9631c6af25877b5a4e13a47afad6",
+      "environment": "production"
+    },
+    {
+      "chain_id": 42161,
+      "address": "0x7b0c3eb38153614452a56bc9295d1bd084a9190a",
+      "environment": "production"
+    },
+    {
+      "chain_id": 999,
+      "address": "0x948e65c40442d935d4ee990bdbd01bdd825c4873",
+      "environment": "development"
+    },
+    {
+      "chain_id": 137,
+      "address": "0xa3fca394739ec4b984e908bd7a3c3b72d0ed77d1",
+      "environment": "development"
+    },
+    {
+      "chain_id": 42161,
+      "address": "0x66e4c25d7e92c3e2765b021a748e740f775ac112",
+      "environment": "development"
+    }
+  ],
+  "venue_domains": [
+    {
+      "venue": "lighter",
+      "chain_id": 304,
+      "address": "0x3b4d794a66304f130a4db8f2551b0070dfcf5ca7"
+    },
+    {
+      "venue": "aster",
+      "chain_id": 56,
+      "address": "0x128463a60784c4d3f46c23af3f65ed859ba87974"
+    }
+  ],
+  "venue_settled": [
+    "lighter",
+    "aster"
+  ],
+  "environment_slots": {
+    "production": {
+      "aster_agent_name": "LaMarge",
+      "lighter_key_index": 254
+    },
+    "development": {
+      "aster_agent_name": "LaMargeDev",
+      "lighter_key_index": 253
+    }
+  },
+  "constants": {
+    "maker_timeout_seconds": 3600,
+    "taker_timeout_seconds": 86400,
+    "route_pay_window_seconds": 210,
+    "at_once_send_margin_seconds": 30,
+    "at_once_signing_seconds": 30,
+    "wallet_swap_min_bps": 9995,
+    "unlimited_allowance": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+    "lighter_max_taker_fee": "1000000",
+    "lighter_api": "https://mainnet.zklighter.elliot.ai",
+    "lighter_usdc_asset": 3,
+    "lighter_collateral_route": 0,
+    "max_fee_bps": 100,
+    "aster_chain_id": 56,
+    "aster_transfer_chain_id": 1666,
+    "fee_tags": {
+      "fee_on_payment": "0xde65f326692b",
+      "fee_on_delivery": "0xcc909c08081a",
+      "wallet_fee_on_payment": "0x1b4c4374729e",
+      "wallet_fee_on_delivery": "0xfcb0d9ddb285"
+    }
+  }
+}

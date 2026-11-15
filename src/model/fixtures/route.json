@@ -1,0 +1,24 @@
+{
+  "funding": "venue",
+  "destination": "wallet",
+  "minimum_received": {
+    "token": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+    "amount": "4995002"
+  },
+  "from": "hyperliquid",
+  "to": "polymarket",
+  "amount_in": "5000000",
+  "capped": false,
+  "amount_out": "4997500",
+  "legs": [
+    {
+      "from": "hyperliquid",
+      "to": "polymarket",
+      "amount_in": "5000000",
+      "amount_out": "4997500",
+      "parts": 2,
+      "taker_fee": "2500",
+      "taker_fee_bps": 5
+    }
+  ]
+}

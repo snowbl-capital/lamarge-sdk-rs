@@ -1,0 +1,137 @@
+{
+  "events": [
+    {
+      "cursor": "1000",
+      "resource_id": "hyperliquid:polymarket",
+      "revision": "1",
+      "occurred_at": "2026-11-14T12:00:00Z",
+      "kind": "book.changed",
+      "data": {
+        "from": "hyperliquid",
+        "to": "polymarket"
+      }
+    },
+    {
+      "cursor": "1001",
+      "resource_id": "0x8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b",
+      "revision": "2",
+      "occurred_at": "2026-11-14T12:00:00Z",
+      "kind": "order.changed",
+      "data": {
+        "id": "0x8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b",
+        "state": "live",
+        "venue": "polymarket",
+        "held": "10000000",
+        "held_in": "escrow",
+        "sequence": 7,
+        "cancel_epoch": "3",
+        "client_order_id": "pool-polymarket-1"
+      }
+    },
+    {
+      "cursor": "1002",
+      "resource_id": "0190f3a4-7b2c-7d10-8e4f-000000000004",
+      "revision": "3",
+      "occurred_at": "2026-11-14T12:00:00Z",
+      "kind": "fill.changed",
+      "data": {
+        "funding": "wallet",
+        "destination": "venue",
+        "id": "0190f3a4-7b2c-7d10-8e4f-000000000004",
+        "take_id": "0190f3a4-7b2c-7d10-8e4f-000000000005",
+        "order_id": "0x8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b",
+        "sequence": 7,
+        "quote_index": 0,
+        "state": "SETTLED",
+        "payment_leg": "CLAIMED",
+        "maker_leg": "CLAIMED",
+        "payment_destination": "escrow",
+        "maker_destination": null,
+        "amount_in": "1000500",
+        "amount_out": "1000000",
+        "taker_fee": "500",
+        "taker_fee_bps": 5,
+        "taker_fee_venue": "hyperliquid",
+        "maker_in": "1000000",
+        "maker_out": "1000000",
+        "from_venue": "hyperliquid",
+        "to_venue": "polymarket",
+        "pay_by": "2026-11-14T12:00:00Z",
+        "t1": "2026-11-14T12:00:00Z",
+        "t2": "2026-11-14T12:00:00Z",
+        "deliver_by": null,
+        "report_by": null,
+        "delivery_to": null,
+        "delivery_hash": null,
+        "delivery_fee": "0",
+        "maker_accept_by": "2026-11-14T12:00:00Z",
+        "maker_accepted_at": "2026-11-14T12:00:00Z",
+        "payment_verified_at": null,
+        "reason": null,
+        "role": "taker"
+      }
+    },
+    {
+      "cursor": "1003",
+      "resource_id": "0190f3a4-7b2c-7d10-8e4f-000000000006",
+      "revision": "4",
+      "occurred_at": "2026-11-14T12:00:00Z",
+      "kind": "lease.changed",
+      "data": {
+        "id": "0190f3a4-7b2c-7d10-8e4f-000000000006",
+        "generation": "4",
+        "lease_expires_at": "2026-11-14T12:00:00Z",
+        "revoked_at": null,
+        "credential_expires_at": "2026-11-14T12:00:00Z",
+        "active": true
+      }
+    },
+    {
+      "cursor": "1004",
+      "resource_id": "0190f3a4-7b2c-7d10-8e4f-000000000007",
+      "revision": "5",
+      "occurred_at": "2026-11-14T12:00:00Z",
+      "kind": "withdrawal.changed",
+      "data": {
+        "id": "0190f3a4-7b2c-7d10-8e4f-000000000007",
+        "venue": "hyperliquid",
+        "state": "relayed",
+        "amount": "1000000",
+        "venue_ref": "0xabc"
+      }
+    },
+    {
+      "cursor": "1005",
+      "resource_id": "hyperliquid",
+      "revision": "6",
+      "occurred_at": "2026-11-14T12:00:00Z",
+      "kind": "balance.changed",
+      "data": {
+        "venue": "hyperliquid",
+        "read_at": "2026-11-14T12:00:00Z",
+        "chain_read_at": null,
+        "venue_available": true,
+        "chain_available": false
+      }
+    },
+    {
+      "cursor": "1006",
+      "resource_id": "0190f3a4-7b2c-7d10-8e4f-000000000004",
+      "revision": "7",
+      "occurred_at": "2026-11-14T12:00:00Z",
+      "kind": "trade",
+      "data": {
+        "id": "0190f3a4-7b2c-7d10-8e4f-000000000004",
+        "from": "hyperliquid",
+        "to": "polymarket",
+        "amount_in": "1000500",
+        "amount_out": "1000000",
+        "settled_at": "2026-11-14T12:00:00Z"
+      }
+    }
+  ],
+  "next_cursor": "1007",
+  "has_more": false,
+  "oldest_cursor": "1",
+  "server_time": "2026-11-14T12:00:00Z"
+}

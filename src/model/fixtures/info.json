@@ -1,0 +1,43 @@
+{
+  "api_version": "v1",
+  "server_time": "2026-11-14T12:00:00Z",
+  "operator": "0xb2bd46c4e0e4ef9a0c5b6b8ea0a7d3d42b27de4f",
+  "limits": {
+    "requests_per_second": 20,
+    "request_burst": 40,
+    "body_bytes": 65536,
+    "lease_seconds_min": 5,
+    "lease_seconds_max": 120,
+    "quote_validity_seconds_max": 600,
+    "take_parts_max": 8,
+    "pay_window_seconds": 60,
+    "route_pay_window_seconds": 210,
+    "max_unpaid_takes": 4,
+    "fill_max": "500000000"
+  },
+  "settlement": {
+    "maker_timeout_seconds": 3600,
+    "taker_timeout_seconds": 86400,
+    "delivery": {
+      "window_seconds": 60,
+      "abandon_after_seconds": 300,
+      "report_margin_seconds": 600,
+      "min_status": 2
+    }
+  },
+  "chains": [
+    {
+      "venue": "hyperliquid",
+      "chain_id": 999,
+      "token": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+      "symbol": "USDC",
+      "decimals": 6,
+      "escrow": "0x3100a1b2c3d4e5f60718293a4b5c6d7e8f901234",
+      "deployment_block": "18034567"
+    }
+  ],
+  "access": {
+    "mode": "invite",
+    "captcha_site_key": null
+  }
+}

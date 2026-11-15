@@ -1,0 +1,43 @@
+{
+  "data": [
+    {
+      "id": "0190f3a4-7b2c-7d10-8e4f-000000000005",
+      "from": "hyperliquid",
+      "to": "polymarket",
+      "amount_in": "1000500",
+      "amount_out": "1000000",
+      "destination": "wallet",
+      "funding": "venue",
+      "received": {
+        "token": "0x6d1e7cde53ba9467b783cb7c530ce054e9f8a1b2",
+        "amount": "999500"
+      },
+      "created_at": "2026-11-14T12:00:00Z",
+      "state": "SETTLED",
+      "status": "completed",
+      "settled_at": "2026-11-14T12:00:00Z",
+      "taker_address": "0xb2bd46c4e0e4ef9a0c5b6b8ea0a7d3d42b27de4f",
+      "executions": [
+        {
+          "payment_fee": null,
+          "id": "0190f3a4-7b2c-7d10-8e4f-000000000004",
+          "from": "hyperliquid",
+          "to": "polymarket",
+          "amount_in": "1000500",
+          "amount_out": "1000000",
+          "destination": "wallet",
+          "funding": "venue",
+          "received": {
+            "token": "0x6d1e7cde53ba9467b783cb7c530ce054e9f8a1b2",
+            "amount": "999500",
+            "sender": "0x3100a1b2c3d4e5f60718293a4b5c6d7e8f901234"
+          },
+          "maker_address": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23",
+          "settled_at": "2026-11-14T12:00:00Z"
+        }
+      ]
+    }
+  ],
+  "next_cursor": "MjAyNi0xMS0xNFQxMjowMDowMFo",
+  "has_more": true
+}

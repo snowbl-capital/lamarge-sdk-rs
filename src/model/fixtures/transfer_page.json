@@ -1,0 +1,153 @@
+{
+  "data": [
+    {
+      "conversion": {
+        "amount_in": "5002500",
+        "min_out": "5000000",
+        "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a50",
+        "chain_id": 137,
+        "escrow": "0x9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e",
+        "payer": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        "converter": "0x2d31000000000000000000000000000000000000",
+        "token": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+        "nonce": "3",
+        "deadline": "1794659400",
+        "prepared_block": 79123456,
+        "state": "ready",
+        "attempts": [
+          "0xb1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1"
+        ],
+        "tx_hash": "0xb1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+        "received": "5000000",
+        "block_number": 79123460
+      },
+      "funding": "venue",
+      "destination": "venue",
+      "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a10",
+      "client_transfer_id": "transfer-2026-11-14-001",
+      "client_take_id": "transfer:0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a10",
+      "from": "hyperliquid",
+      "to": "polymarket",
+      "amount_in": "5002500",
+      "min_out": "4990000",
+      "max_parts": 8,
+      "max_fee_bps": 5,
+      "from_dex": "xyz",
+      "payer": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+      "recipient": "0x7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c",
+      "from_chain_id": 999,
+      "to_chain_id": 137,
+      "withdrawal_preparation": {
+        "amount": "5002500",
+        "typed_data": {
+          "types": {
+            "EIP712Domain": [
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "name": "chainId",
+                "type": "uint256"
+              },
+              {
+                "name": "verifyingContract",
+                "type": "address"
+              }
+            ],
+            "PayTake": [
+              {
+                "name": "payer",
+                "type": "address"
+              }
+            ]
+          },
+          "primaryType": "PayTake",
+          "domain": {
+            "name": "LaMarge",
+            "version": "1",
+            "chainId": 999,
+            "verifyingContract": "0x9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e9e"
+          },
+          "message": {
+            "payer": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+          }
+        },
+        "created_at": "2026-11-14T11:59:00Z"
+      },
+      "withdrawal": {
+        "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a20",
+        "venue": "hyperliquid",
+        "from_dex": "xyz",
+        "kind": "withdrawal",
+        "amount": "5000000",
+        "destination": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        "state": "relayed",
+        "venue_ref": "8d2f",
+        "error": null,
+        "created_at": "2026-11-14T11:59:00Z",
+        "relayed_at": "2026-11-14T11:59:01.5Z"
+      },
+      "funding_plan": {
+        "observed_at": "2026-11-14T11:59:58Z",
+        "venue": "hyperliquid",
+        "owner": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+        "amount": "5002500",
+        "deposit": "5002500",
+        "withdrawal_amount": "5002500",
+        "withdrawal_to": "signer",
+        "payment_setup": "done",
+        "signed_at_once": true,
+        "requests": [
+          {
+            "kind": "margin_move",
+            "signer": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "chain_id": 999
+          },
+          {
+            "kind": "pay_take",
+            "signer": "0x5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a",
+            "chain_id": 999
+          }
+        ]
+      },
+      "funding_plan_error": {
+        "code": "STATE_CONFLICT",
+        "message": "an earlier withdrawal is being sent",
+        "reason": "withdrawal_submitted",
+        "venue": "hyperliquid",
+        "step": "permit",
+        "status": 409,
+        "retry_after": 2
+      },
+      "take_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a01",
+      "take_final": true,
+      "then": {
+        "to": "aster",
+        "recipient": "0x7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c7c",
+        "destination": "venue",
+        "amount_in": "4997500",
+        "min_out": "4990000000000000000",
+        "max_fee_bps": 5,
+        "chain_id": 56
+      },
+      "previous_transfer_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a0f",
+      "continuable": "4997500",
+      "cancelled_at": "2026-11-14T12:10:00Z",
+      "created_at": "2026-11-14T11:58:59Z",
+      "grouped": {
+        "state": "committed",
+        "second_transfer_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a11",
+        "first_take_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a01",
+        "second_take_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a02",
+        "commit_by": "2026-11-14T12:03:30Z"
+      }
+    }
+  ],
+  "next_cursor": "c2",
+  "has_more": true
+}

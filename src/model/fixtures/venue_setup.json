@@ -1,0 +1,67 @@
+{
+  "venue": "aster",
+  "address": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23",
+  "ready": false,
+  "steps": [
+    {
+      "step": "agent",
+      "status": "required",
+      "reason": "expired",
+      "expires_at": "2026-11-14T12:00:00Z",
+      "needed_for": [
+        "pay",
+        "receive"
+      ],
+      "to_sign": {
+        "kind": "aster_approval",
+        "signer": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23",
+        "ref": "approval-1",
+        "typed_data": {
+          "types": {
+            "EIP712Domain": [
+              {
+                "name": "name",
+                "type": "string"
+              }
+            ],
+            "Permit": [
+              {
+                "name": "owner",
+                "type": "address"
+              }
+            ]
+          },
+          "primaryType": "Permit",
+          "domain": {
+            "name": "USD Coin",
+            "version": "2",
+            "chainId": 999,
+            "verifyingContract": "0xb88339cb7199b77e23db6e890353e22632ba630f"
+          },
+          "message": {
+            "owner": "0x2c7536e3605d9c16a7a3d7b1898e529396a65c23",
+            "value": "1000000"
+          }
+        },
+        "message": "Register Lighter Account",
+        "expires_at": "2026-11-14T12:00:00Z",
+        "attestation": {
+          "signature": "0x111111111111111111111111111111111111111111111111111111111111111122222222222222222222222222222222222222222222222222222222222222221b"
+        }
+      },
+      "hash": null
+    },
+    {
+      "step": "permit",
+      "status": "done",
+      "reason": null,
+      "expires_at": null,
+      "needed_for": [
+        "make",
+        "pay"
+      ],
+      "to_sign": null,
+      "hash": "0x5e8a0c2d4f6b8a0c2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a1b3c5d7e9f1a3b5c7d"
+    }
+  ]
+}

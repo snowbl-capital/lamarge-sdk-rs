@@ -1,0 +1,886 @@
+{
+  "aster_approval": {
+    "domain": {
+      "chainId": 56,
+      "name": "AsterSignTransaction",
+      "verifyingContract": "0x0000000000000000000000000000000000000000",
+      "version": "1"
+    },
+    "message": {
+      "msg": "user=0x84026D3BefF123AAb7DFF957574D1362d6F880A5&nonce=1790000000000000&agentName=LaMarge&agentAddress=0x669ED91296e0098eb827D85eAE6F2A60c5f14f8d&expired=1821536000000&signatureChainId=56&canSpotTrade=false&canPerpTrade=true&canWithdraw=false&ipWhitelist=1.2.3.4"
+    },
+    "primaryType": "Message",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "Message": [
+        {
+          "name": "msg",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "aster_transfer": {
+    "domain": {
+      "chainId": 1666,
+      "name": "AsterSignTransaction",
+      "verifyingContract": "0x0000000000000000000000000000000000000000",
+      "version": "1"
+    },
+    "message": {
+      "msg": "asset=USDT&amount=1.000001&toAddress=0x669ED91296e0098eb827D85eAE6F2A60c5f14f8d&clientTranId=0198f0a21c3d7e4f8a9b0c1d2e3f4a5b&nonce=1790000055000000&user=0x84026D3BefF123AAb7DFF957574D1362d6F880A5"
+    },
+    "primaryType": "Message",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "Message": [
+        {
+          "name": "msg",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "close_orders": {
+    "domain": {
+      "chainId": 999,
+      "name": "LaMarge",
+      "verifyingContract": "0x3100b7b49c0f9631c6af25877b5a4e13a47afad6",
+      "version": "1"
+    },
+    "message": {
+      "account": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+      "deadline": "1790003600",
+      "nonce": "18446744073709551615",
+      "orders": [
+        "0x4444444444444444444444444444444444444444444444444444444444444444",
+        "0x5555555555555555555555555555555555555555555555555555555555555555"
+      ]
+    },
+    "primaryType": "CloseOrders",
+    "types": {
+      "CloseOrders": [
+        {
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "name": "orders",
+          "type": "bytes32[]"
+        },
+        {
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "name": "deadline",
+          "type": "uint256"
+        }
+      ],
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ]
+    }
+  },
+  "fund_offer": {
+    "domain": {
+      "chainId": 137,
+      "name": "LaMarge",
+      "verifyingContract": "0x3100b7b49c0f9631c6af25877b5a4e13a47afad6",
+      "version": "1"
+    },
+    "message": {
+      "amount": "50000000",
+      "deadline": "1790003600",
+      "deposit": "20000000",
+      "minQuoteSequence": 5,
+      "nonce": "9007199254740993",
+      "offerId": "0x4444444444444444444444444444444444444444444444444444444444444444",
+      "operator": "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc",
+      "owner": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+      "quoteSigner": "0x669ed91296e0098eb827d85eae6f2a60c5f14f8d"
+    },
+    "primaryType": "FundOffer",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "FundOffer": [
+        {
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "name": "offerId",
+          "type": "bytes32"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "name": "deposit",
+          "type": "uint256"
+        },
+        {
+          "name": "quoteSigner",
+          "type": "address"
+        },
+        {
+          "name": "operator",
+          "type": "address"
+        },
+        {
+          "name": "minQuoteSequence",
+          "type": "uint64"
+        },
+        {
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "name": "deadline",
+          "type": "uint256"
+        }
+      ]
+    }
+  },
+  "pay_take": {
+    "domain": {
+      "chainId": 999,
+      "name": "LaMarge",
+      "verifyingContract": "0x3100b7b49c0f9631c6af25877b5a4e13a47afad6",
+      "version": "1"
+    },
+    "message": {
+      "deposit": "1000000",
+      "payer": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+      "payments": [
+        {
+          "amount": "2001900",
+          "amountOut": "2000000",
+          "deadline": "1790000090",
+          "dex": 0,
+          "hashlock": "0x1111111111111111111111111111111111111111111111111111111111111111",
+          "orderId": "0x2222222222222222222222222222222222222222222222222222222222222222",
+          "payer": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+          "receiveChainId": "137",
+          "receiveEscrow": "0x3100b7b49c0f9631c6af25877b5a4e13a47afad6",
+          "receiveRecipient": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+          "receiveToken": "0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb",
+          "recipient": "0x669ed91296e0098eb827d85eae6f2a60c5f14f8d",
+          "refundAt": "1790086400",
+          "sequence": "7",
+          "swapId": "0xde65f326692b00000000000000000258abababababababababababababababab"
+        },
+        {
+          "amount": "2001900",
+          "amountOut": "2000000",
+          "deadline": "1790000090",
+          "dex": 4294967295,
+          "hashlock": "0x1111111111111111111111111111111111111111111111111111111111111111",
+          "orderId": "0x2222222222222222222222222222222222222222222222222222222222222222",
+          "payer": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+          "receiveChainId": "42161",
+          "receiveEscrow": "0x7b0c3eb38153614452a56bc9295d1bd084a9190a",
+          "receiveRecipient": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+          "receiveToken": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+          "recipient": "0x669ed91296e0098eb827d85eae6f2a60c5f14f8d",
+          "refundAt": "1790086400",
+          "sequence": "7",
+          "swapId": "0x3333333333333333333333333333333333333333333333333333333333333333"
+        }
+      ]
+    },
+    "primaryType": "PayTake",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "LockPayment": [
+        {
+          "name": "payer",
+          "type": "address"
+        },
+        {
+          "name": "swapId",
+          "type": "bytes32"
+        },
+        {
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "name": "hashlock",
+          "type": "bytes32"
+        },
+        {
+          "name": "refundAt",
+          "type": "uint64"
+        },
+        {
+          "name": "deadline",
+          "type": "uint256"
+        },
+        {
+          "name": "orderId",
+          "type": "bytes32"
+        },
+        {
+          "name": "sequence",
+          "type": "uint64"
+        },
+        {
+          "name": "amountOut",
+          "type": "uint256"
+        },
+        {
+          "name": "receiveChainId",
+          "type": "uint256"
+        },
+        {
+          "name": "receiveToken",
+          "type": "address"
+        },
+        {
+          "name": "receiveEscrow",
+          "type": "address"
+        },
+        {
+          "name": "receiveRecipient",
+          "type": "address"
+        },
+        {
+          "name": "dex",
+          "type": "uint32"
+        }
+      ],
+      "PayTake": [
+        {
+          "name": "payer",
+          "type": "address"
+        },
+        {
+          "name": "deposit",
+          "type": "uint256"
+        },
+        {
+          "name": "payments",
+          "type": "LockPayment[]"
+        }
+      ]
+    }
+  },
+  "permit": {
+    "domain": {
+      "chainId": 999,
+      "name": "USDC",
+      "verifyingContract": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+      "version": "2"
+    },
+    "message": {
+      "deadline": "1790000600",
+      "nonce": "3",
+      "owner": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+      "spender": "0x3100b7b49c0f9631c6af25877b5a4e13a47afad6",
+      "value": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+    },
+    "primaryType": "Permit",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "Permit": [
+        {
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "name": "deadline",
+          "type": "uint256"
+        }
+      ]
+    }
+  },
+  "polymarket_internal_transfer": {
+    "domain": {
+      "chainId": 137,
+      "name": "Polymarket",
+      "version": "1"
+    },
+    "message": {
+      "data": "0x738366a78fb34a63b0a56538acdf2bc51a8526694da928c555b08aaa6536cc70",
+      "salt": 345678901,
+      "ts": 1790000000000
+    },
+    "op": {
+      "args": {
+        "account": "0x84026D3BefF123AAb7DFF957574D1362d6F880A5",
+        "amount": "250.5",
+        "to": "0x669ED91296e0098eb827D85eAE6F2A60c5f14f8d",
+        "token": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB"
+      },
+      "type": "internalTransfer"
+    },
+    "primaryType": "Op",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        }
+      ],
+      "Op": [
+        {
+          "name": "data",
+          "type": "bytes32"
+        },
+        {
+          "name": "salt",
+          "type": "uint64"
+        },
+        {
+          "name": "ts",
+          "type": "uint64"
+        }
+      ]
+    }
+  },
+  "polymarket_withdraw": {
+    "domain": {
+      "chainId": 137,
+      "name": "Polymarket",
+      "verifyingContract": "0xDCa4af75705dbB50f62437045afF9921947917d2",
+      "version": "1"
+    },
+    "message": {
+      "account": "0x84026D3BefF123AAb7DFF957574D1362d6F880A5",
+      "amount": "10000000",
+      "fee": "0",
+      "salt": 77,
+      "to": "0x84026D3BefF123AAb7DFF957574D1362d6F880A5",
+      "token": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+      "ts": 1790000000
+    },
+    "primaryType": "Withdraw",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "Withdraw": [
+        {
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "name": "fee",
+          "type": "uint256"
+        },
+        {
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "name": "salt",
+          "type": "uint64"
+        },
+        {
+          "name": "ts",
+          "type": "uint64"
+        }
+      ]
+    }
+  },
+  "quote_set": {
+    "domain": {
+      "chainId": 999,
+      "name": "LaMarge",
+      "verifyingContract": "0x3100b7b49c0f9631c6af25877b5a4e13a47afad6",
+      "version": "1"
+    },
+    "message": {
+      "expiresAt": 1790003601,
+      "offerId": "0x4444444444444444444444444444444444444444444444444444444444444444",
+      "owner": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+      "quotes": [
+        {
+          "chainId": 137,
+          "minFill": "10000000",
+          "receive": "500250000",
+          "recipient": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+          "supply": "500000000",
+          "token": "0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb",
+          "venue": "polymarket"
+        },
+        {
+          "chainId": 42161,
+          "minFill": "10000000",
+          "receive": "500250000",
+          "recipient": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+          "supply": "500000000",
+          "token": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+          "venue": "gmx"
+        }
+      ],
+      "sequence": 12
+    },
+    "primaryType": "QuoteSet",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "Quote": [
+        {
+          "name": "venue",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "name": "supply",
+          "type": "uint256"
+        },
+        {
+          "name": "receive",
+          "type": "uint256"
+        },
+        {
+          "name": "minFill",
+          "type": "uint256"
+        }
+      ],
+      "QuoteSet": [
+        {
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "name": "offerId",
+          "type": "bytes32"
+        },
+        {
+          "name": "sequence",
+          "type": "uint64"
+        },
+        {
+          "name": "expiresAt",
+          "type": "uint64"
+        },
+        {
+          "name": "quotes",
+          "type": "Quote[]"
+        }
+      ]
+    }
+  },
+  "quote_set_lighter": {
+    "domain": {
+      "chainId": 304,
+      "name": "LaMarge",
+      "verifyingContract": "0x3b4d794a66304f130a4db8f2551b0070dfcf5ca7",
+      "version": "1"
+    },
+    "message": {
+      "expiresAt": 1790003601,
+      "offerId": "0x4444444444444444444444444444444444444444444444444444444444444444",
+      "owner": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+      "quotes": [
+        {
+          "chainId": 999,
+          "minFill": "10000000",
+          "receive": "500250000",
+          "recipient": "0x84026d3beff123aab7dff957574d1362d6f880a5",
+          "supply": "500000000",
+          "token": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+          "venue": "hyperliquid"
+        }
+      ],
+      "sequence": 12
+    },
+    "primaryType": "QuoteSet",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "Quote": [
+        {
+          "name": "venue",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "name": "supply",
+          "type": "uint256"
+        },
+        {
+          "name": "receive",
+          "type": "uint256"
+        },
+        {
+          "name": "minFill",
+          "type": "uint256"
+        }
+      ],
+      "QuoteSet": [
+        {
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "name": "offerId",
+          "type": "bytes32"
+        },
+        {
+          "name": "sequence",
+          "type": "uint64"
+        },
+        {
+          "name": "expiresAt",
+          "type": "uint64"
+        },
+        {
+          "name": "quotes",
+          "type": "Quote[]"
+        }
+      ]
+    }
+  },
+  "send_asset_send": {
+    "domain": {
+      "chainId": 999,
+      "name": "HyperliquidSignTransaction",
+      "verifyingContract": "0x0000000000000000000000000000000000000000",
+      "version": "1"
+    },
+    "message": {
+      "amount": "5.25",
+      "destination": "0x669ed91296e0098eb827d85eae6f2a60c5f14f8d",
+      "destinationDex": "",
+      "fromSubAccount": "",
+      "hyperliquidChain": "Mainnet",
+      "nonce": 1790000000123,
+      "sourceDex": "spot",
+      "token": "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
+    },
+    "primaryType": "HyperliquidTransaction:SendAsset",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "HyperliquidTransaction:SendAsset": [
+        {
+          "name": "hyperliquidChain",
+          "type": "string"
+        },
+        {
+          "name": "destination",
+          "type": "string"
+        },
+        {
+          "name": "sourceDex",
+          "type": "string"
+        },
+        {
+          "name": "destinationDex",
+          "type": "string"
+        },
+        {
+          "name": "token",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "fromSubAccount",
+          "type": "string"
+        },
+        {
+          "name": "nonce",
+          "type": "uint64"
+        }
+      ]
+    }
+  },
+  "send_asset_withdrawal": {
+    "domain": {
+      "chainId": 999,
+      "name": "HyperliquidSignTransaction",
+      "verifyingContract": "0x0000000000000000000000000000000000000000",
+      "version": "1"
+    },
+    "message": {
+      "amount": "12.5",
+      "destination": "0x2000000000000000000000000000000000000000",
+      "destinationDex": "spot",
+      "fromSubAccount": "",
+      "hyperliquidChain": "Mainnet",
+      "nonce": 1790000000000,
+      "sourceDex": "",
+      "token": "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
+    },
+    "primaryType": "HyperliquidTransaction:SendAsset",
+    "types": {
+      "EIP712Domain": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "version",
+          "type": "string"
+        },
+        {
+          "name": "chainId",
+          "type": "uint256"
+        },
+        {
+          "name": "verifyingContract",
+          "type": "address"
+        }
+      ],
+      "HyperliquidTransaction:SendAsset": [
+        {
+          "name": "hyperliquidChain",
+          "type": "string"
+        },
+        {
+          "name": "destination",
+          "type": "string"
+        },
+        {
+          "name": "sourceDex",
+          "type": "string"
+        },
+        {
+          "name": "destinationDex",
+          "type": "string"
+        },
+        {
+          "name": "token",
+          "type": "string"
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "fromSubAccount",
+          "type": "string"
+        },
+        {
+          "name": "nonce",
+          "type": "uint64"
+        }
+      ]
+    }
+  }
+}

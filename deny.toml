@@ -1,0 +1,41 @@
+[graph]
+all-features = true
+# Licence and advisory obligations of users come from normal dependencies only.
+exclude-dev = true
+
+[advisories]
+# An ignore that no longer matches fails, so a stale entry and its reason are removed.
+unused-ignored-advisory = "deny"
+ignore = [
+    # crypto-bigint 0.5 (through k256 0.13): timing leaks on secret operands, fixed in 0.7.6
+    # behind k256 0.14, which alloy-primitives and alloy-signer do not accept yet (k256 ^0.13).
+    # This crate holds no key: it only recovers addresses from public signatures. Signing runs
+    # in the `alloy_signer::Signer` the caller passes; a local key signer is the caller's own
+    # dependency and decision.
+    { id = "RUSTSEC-2026-0387", reason = "no key in this crate; alloy still requires k256 0.13" },
+    # paste (through alloy-primitives) is unmaintained; a compile-time macro with no runtime code.
+    { id = "RUSTSEC-2024-0436", reason = "unmaintained compile-time macro of alloy-primitives" },
+]
+
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Zlib",
+    "CDLA-Permissive-2.0",
+    "OpenSSL",
+]
+confidence-threshold = 0.9
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

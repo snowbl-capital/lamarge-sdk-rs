@@ -1,0 +1,64 @@
+# A tag vX.Y.Z publishes that version to crates.io through trusted publishing: no token is stored.
+# The first version is published by hand; this repository, workflow and environment are then
+# registered as the crate's trusted publisher.
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: crates-io
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: rustup toolchain install --profile minimal
+      - name: The tag names the crate's version, dated in the changelog
+        run: |
+          test "v$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')" = "$GITHUB_REF_NAME"
+          grep -qE "^## \[${GITHUB_REF_NAME#v}\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-hack,cargo-semver-checks,cargo-deny@0.20.2
+      - run: cargo deny check
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --all-features --locked -- -D warnings
+      - run: cargo clippy --all-targets --no-default-features --features ring --locked -- -D warnings
+      - run: cargo test --all-features --locked
+      - run: cargo doc --all-features --no-deps --locked
+        env:
+          RUSTDOCFLAGS: -D warnings
+      - run: cargo hack check --feature-powerset --at-least-one-of aws-lc-rs,ring --no-dev-deps
+      # Against the latest published version; before 1.0 only a minor may break.
+      - name: Semver against crates.io
+        run: |
+          case $(curl --silent --output /dev/null --write-out '%{http_code}' https://index.crates.io/la/ma/lamarge) in
+            200) cargo semver-checks ;;
+            404) echo "No published version to compare with" ;;
+            *) exit 1 ;;
+          esac
+      - run: cargo publish --dry-run --locked
+      # The first version is published by hand: its tag only creates the GitHub release.
+      - name: Already on crates.io
+        id: published
+        run: |
+          curl --silent --fail https://index.crates.io/la/ma/lamarge > index.jsonl || true
+          echo "published=$(jq -s --arg version "${GITHUB_REF_NAME#v}" 'any(.vers == $version)' index.jsonl)" >> "$GITHUB_OUTPUT"
+      - uses: rust-lang/crates-io-auth-action@3268eb413133e2960fa4ae0e963ca76380c54cd9 # v1.0.6
+        if: steps.published.outputs.published == 'false'
+        id: auth
+      - if: steps.published.outputs.published == 'false'
+        run: cargo publish --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+      # The release notes are the version's CHANGELOG section.
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=${GITHUB_REF_NAME#v}
+          awk -v heading="## [$version]" 'index($0, heading) == 1 { found = 1; next } found && /^## \[/ { exit } found' CHANGELOG.md > notes.md
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md --verify-tag

@@ -1,0 +1,25 @@
+{
+  "assets": [
+    {
+      "venue": "hyperliquid",
+      "chain_id": 999,
+      "token": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+      "symbol": "USDC",
+      "decimals": 6,
+      "chain_observation": {
+        "block": "18100000",
+        "finalized_block": null,
+        "checked_at": "2026-11-14T12:00:00Z",
+        "finalized_at": null,
+        "current": null
+      },
+      "maker_escrow": "10000000",
+      "maker_pool_inventory": "0",
+      "maker_reserved": "1000000",
+      "maker_delivered_unpaid": "0",
+      "maker_payment_locked": "0",
+      "taker_payment_locked": "0"
+    }
+  ],
+  "server_time": "2026-11-14T12:00:00Z"
+}

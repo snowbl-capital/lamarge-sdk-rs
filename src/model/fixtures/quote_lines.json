@@ -1,0 +1,19 @@
+{
+  "quote_identity_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a30",
+  "revision": "12",
+  "lines": [
+    {
+      "venue": "hyperliquid",
+      "buy": "0.9995",
+      "sell": "1.0005",
+      "stock": "250000000",
+      "min_fill": "1000000"
+    },
+    {
+      "venue": "polymarket",
+      "buy": "0.999",
+      "sell": null,
+      "stock": "0"
+    }
+  ]
+}

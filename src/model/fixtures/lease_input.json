@@ -1,0 +1,5 @@
+{
+  "ttl_seconds": 30,
+  "api_rtt_ms": 42,
+  "api_rtt_age_ms": 1500
+}
