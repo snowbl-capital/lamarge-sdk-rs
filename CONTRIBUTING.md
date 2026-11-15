@@ -24,7 +24,8 @@ CI also builds at the MSRV (`cargo hack --rust-version check --all-features --lo
 | --- | --- |
 | `server-typed-data.json` | the server's typed-data builders |
 | `eip712.json` | viem's digests of those typed data, as the TypeScript SDK signs them |
-| `pins.json` | the TypeScript SDK's pinned deployments and protocol constants, which `src/deployments.rs` equals |
+| `pins.json` | the TypeScript SDK's pinned deployments, protocol constants and Relay contracts, which `src/deployments.rs` and `src/protocol/relay.rs` equal |
+| `relay.json` | Relay orders saved from live quotes, which the TypeScript SDK's checks also read |
 | `lighter.json` | Lighter's signing vectors |
 | `openapi.json` | the API's public contract |
 

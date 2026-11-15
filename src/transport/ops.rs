@@ -232,6 +232,23 @@ ops! {
             .secret();
     PREPARE_WITHDRAWAL = Op::post("postWithdrawalPrepare", "/v1/withdrawals/prepare", Session);
     SUBMIT_WITHDRAWAL = Op::post("postWithdrawal", "/v1/withdrawals", Session).retried();
+
+    // Moves and bridges. A move is idempotent by its `client_move_id`, its close by its terms, a
+    // bridge by its `client_bridge_id`, its signatures and transaction reports by content; a fence
+    // has no key.
+    QUOTE_MOVE = Op::get("quoteMove", "/v1/moves/quote", Session);
+    CREATE_MOVE = Op::post("createMove", "/v1/moves", Session).retried();
+    GET_MOVE = Op::get("getMove", "/v1/moves/{id}", Session);
+    CLOSE_MOVE = Op::post("closeMove", "/v1/moves/{id}/close", Session).retried();
+    CREATE_BRIDGE = Op::post("createBridge", "/v1/moves/{id}/bridges", Session).retried();
+    GET_BRIDGE = Op::get("getBridge", "/v1/bridges/{id}", Session);
+    GET_BRIDGE_FUNDING = Op::get("getBridgeFunding", "/v1/bridges/{id}/funding", Session);
+    SIGN_BRIDGE = Op::post("signBridge", "/v1/bridges/{id}/signatures", Session).retried();
+    /// The empty body fences exclusively: a replay would answer the first fence's success as
+    /// another client's.
+    FENCE_BRIDGE =
+        Op::post("reportBridgeTransaction", "/v1/bridges/{id}/transactions", Session);
+    REPORT_BRIDGE_TRANSACTION = FENCE_BRIDGE.retried();
 }
 
 /// Operations out of 0.1's scope, with the reason.

@@ -4,7 +4,7 @@ use alloy_primitives::Address;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::types::{Amount, Revision, VenueId, WithdrawalId, open_enum};
+use crate::types::{Amount, MoveId, Revision, VenueId, WithdrawalId, open_enum};
 
 open_enum! {
     /// A withdrawal's progress at its venue.
@@ -46,6 +46,9 @@ open_enum! {
 pub struct Withdrawal {
     /// The withdrawal.
     pub id: WithdrawalId,
+    /// The move it feeds a bridge for.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub move_id: Option<MoveId>,
     /// The venue it leaves.
     pub venue: VenueId,
     /// `Xyz` when it left a standard Hyperliquid account's trade.xyz balance.

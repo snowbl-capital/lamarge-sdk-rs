@@ -10,7 +10,8 @@ use super::{Destination, Dex, Funding, TokenAmount, Withdrawal};
 use crate::{
     error::{ErrorCode, Reason},
     types::{
-        Amount, Bps, ClientId, MaxParts, SetupStepKind, TakeId, TransferId, VenueId, open_enum,
+        Amount, Bps, ClientId, MaxParts, MoveId, SetupStepKind, TakeId, TransferId, VenueId,
+        open_enum,
     },
 };
 
@@ -129,6 +130,9 @@ open_enum! {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct TransferIntent {
+    /// The move it belongs to.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub move_id: Option<MoveId>,
     /// The Polygon wallet conversion funding it, if any.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub conversion: Option<WalletConversion>,

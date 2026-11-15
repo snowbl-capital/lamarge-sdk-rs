@@ -357,6 +357,59 @@ pub(crate) const POOL_QUOTE_SIGNER: &str = "pool.quote_signer";
 /// A cancellation names a pool with stock, or none of the identity's.
 pub(crate) const CANCELS: &str = "cancels";
 
+// Moves and bridges.
+/// The transfer belongs to another move than the request names.
+pub(crate) const MOVE_ID: &str = "move_id";
+/// The bridge's wallet is not a token a bridge starts from or delivers to.
+pub(crate) const BRIDGE_WALLET: &str = "bridge wallet";
+/// The bridge's origin is not one a bridge debits (`HyperCore` or a wallet), or not the one the
+/// call signs or sends from.
+pub(crate) const BRIDGE_ORIGIN: &str = "bridge origin";
+/// The bridge's destination is not a venue a bridge credits.
+pub(crate) const BRIDGE_VENUE: &str = "bridge venue";
+/// The bridge's funds are read for another owner, token or spender than the payer, the origin
+/// token and Relay's pinned depository.
+pub(crate) const BRIDGE_FUNDING: &str = "bridge funding";
+/// The bridge's order is unreadable, or does not hash to its id.
+pub(crate) const BRIDGE_ORDER: &str = "order.data";
+/// The order is of another version than `v1`.
+pub(crate) const ORDER_VERSION: &str = "order.version";
+/// The order names another solver than Relay's pinned one, or on another chain.
+pub(crate) const ORDER_SOLVER: &str = "order.solver";
+/// The order charges fees.
+pub(crate) const ORDER_FEES: &str = "order.fees";
+/// The order has more or fewer inputs than one.
+pub(crate) const ORDER_INPUTS: &str = "order.inputs";
+/// The input is on another chain or in another currency than the origin.
+pub(crate) const ORDER_INPUT: &str = "order.inputs.payment";
+/// The input's amount or weight is not the bridge's `amount_in`.
+pub(crate) const ORDER_AMOUNT: &str = "order.inputs.payment.amount";
+/// A refund goes to someone else than the payer (or the recipient, on the destination chain),
+/// or to another chain than the move's.
+pub(crate) const ORDER_REFUND: &str = "order.inputs.refunds";
+/// A refund names another execution contract than Relay's router.
+pub(crate) const ORDER_REFUND_EXTRA: &str = "order.inputs.refunds.extraData";
+/// The output is on another chain than the destination.
+pub(crate) const ORDER_OUTPUT_CHAIN: &str = "order.output.chainId";
+/// The output names another execution contract than Relay's router.
+pub(crate) const ORDER_OUTPUT_EXTRA: &str = "order.output.extraData";
+/// The order's deadline is past.
+pub(crate) const ORDER_DEADLINE: &str = "order.output.deadline";
+/// The output has more or fewer payments than one.
+pub(crate) const ORDER_PAYMENTS: &str = "order.output.payments";
+/// The payment is in another currency than the destination's.
+pub(crate) const ORDER_CURRENCY: &str = "order.output.payments.currency";
+/// The guaranteed output is below the part's floor.
+pub(crate) const ORDER_MINIMUM: &str = "order.output.payments.minimumAmount";
+/// The payment goes to someone else than the recipient (or the router, for an account credited
+/// through calls).
+pub(crate) const ORDER_RECIPIENT: &str = "order.output.payments.recipient";
+/// The account credit is missing, below the floor or above the guaranteed output.
+pub(crate) const ACCOUNT_CREDIT: &str = "account credit";
+/// The router's calls are not exactly the account credit and sweep the terms rebuild, or a plain
+/// payout has calls.
+pub(crate) const ORDER_CALLS: &str = "order.output.calls";
+
 /// A [`VerificationKind::Differs`] failure of `detail`.
 pub(crate) const fn differs(detail: &'static str) -> VerificationError {
     VerificationError { kind: VerificationKind::Differs, detail, index: None }

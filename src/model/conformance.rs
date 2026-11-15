@@ -242,8 +242,21 @@ fn taker_cases() -> Vec<Case> {
         // Withdrawals.
         Withdrawal: ["Withdrawal"] "transfer_page/data/0/withdrawal",
         Page<WithdrawalHistoryRow>: ["WithdrawalHistoryPage"] "withdrawal_history_page",
+        // Moves and bridges.
+        MoveQuote: ["MoveQuote"] "move_quote",
+        LamargePart: ["MoveQuote.lamarge"] "move_quote/lamarge",
+        BridgeQuote: ["BridgeQuote"] "move_quote/bridge",
+        Move: ["Move"] "move",
+        MoveEndpoint: ["MoveEndpoint"] "move/to",
+        MovePart: ["MovePart"] "move/transfers/0",
+        Bridge: ["Bridge"] "move/bridges/0",
+        BridgeOrder: ["Bridge.order"] "move/bridges/0/order",
+        BridgeRefund: ["Bridge.refund"] "move/bridges/0/refund",
         // Request bodies.
         crate::flows::TakeInput: ["TakeInput"] "take_input",
+        crate::api::MoveRequest: ["MoveRequest"] "move_request",
+        crate::api::BridgeRequest: ["BridgeRequest"] "bridge_request",
+        crate::api::WalletSource: ["BridgeRequest.from_wallet"] "bridge_request/from_wallet",
     }
 }
 
@@ -337,6 +350,13 @@ fn enums() -> Vec<EnumCase> {
         enum_case::<MakerPreparationState>("MakerPreparation.state"),
         enum_case::<FundingSource>("FundingSource"),
         enum_case::<CredentialScope>("CredentialScope"),
+        enum_case::<MoveVenue>("MoveVenue"),
+        enum_case::<LamargeUnavailable>("MoveQuote.lamarge_unavailable"),
+        enum_case::<BridgeUnavailable>("MoveQuote.bridge_unavailable"),
+        enum_case::<BridgeProvider>("BridgeQuote.provider"),
+        enum_case::<BridgeProvider>("Bridge.provider"),
+        enum_case::<MoveState>("Move.state"),
+        enum_case::<BridgeState>("Bridge.state"),
     ]
 }
 
@@ -741,6 +761,25 @@ fn reachable_object_schemas_are_registered() {
         .filter(|name| !registered.contains(name.as_str()))
         .collect();
     assert!(missing.is_empty(), "reachable schemas neither registered nor unmodelled: {missing:?}");
+}
+
+/// An inline answer schema, which no component names: its model's fields equal its properties,
+/// its fixture sets each and decodes without ignored fields, and no required key may be missing.
+#[test]
+fn inline_answers_match_their_models() {
+    let answer = &spec()["paths"]["/v1/bridges/{id}/funding"]["get"]["responses"]["200"];
+    let object = object(&answer["content"]["application/json"]["schema"]);
+    let spec_fields: BTreeSet<&str> = object.properties.keys().map(String::as_str).collect();
+    let rust: BTreeSet<&str> = fields::<BridgeFunding>().into_iter().collect();
+    assert_eq!(rust, spec_fields);
+    let fixture = fixture("bridge_funding");
+    assert_eq!(decode::<BridgeFunding>(fixture.clone()), Ok(Vec::new()));
+    assert_eq!(fixture.as_object().unwrap().len(), spec_fields.len());
+    for key in &object.required {
+        let mut without = fixture.clone();
+        without.as_object_mut().unwrap().remove(key);
+        assert!(decode::<BridgeFunding>(without).is_err(), "{key}");
+    }
 }
 
 /// The checks themselves catch what they claim to.

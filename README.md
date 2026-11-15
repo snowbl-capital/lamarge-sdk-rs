@@ -1,6 +1,6 @@
 # lamarge
 
-Rust client for the [LaMarge API](https://docs.lamarge.trade): market data, the event feed, sign-in, venue setup, takes, transfers, withdrawals and passive market making on escrow venues.
+Rust client for the [LaMarge API](https://docs.lamarge.trade): market data, the event feed, sign-in, venue setup, takes, transfers, withdrawals, external bridges of a move and passive market making on escrow venues.
 
 Before a signer sees anything, the crate:
 

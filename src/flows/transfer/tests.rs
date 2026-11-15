@@ -1007,6 +1007,23 @@ async fn an_unreadable_answer_keeps_the_signature() {
     assert_eq!(t.signatures(), 1);
 }
 
+/// "a transfer attached to a move sends its id, and one answered under another move is never
+/// signed".
+#[tokio::test]
+async fn a_transfer_of_a_move_carries_its_id() {
+    const MOVE: &str = "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a60";
+    let request = |t: &Taker| wallet(t.owner()).move_id(MOVE.parse().unwrap());
+    let t = Taker::new(Options::default()).await;
+    let outcome = t.run(&request(&t)).await;
+    assert_eq!(refused(outcome), (VerificationKind::Changed, details::MOVE_ID));
+    assert_eq!(t.signatures(), 0);
+    assert_eq!(t.bodies(&route("POST", "/v1/transfers")).await[0]["move_id"], MOVE);
+    t.edit(|state| state.intent["move_id"] = json!(MOVE));
+    assert_eq!(states(t.run(&request(&t)).await), paid());
+    let outcome = t.run(&wallet(t.owner())).await;
+    assert_eq!(refused(outcome), (VerificationKind::Changed, details::MOVE_ID));
+}
+
 /// "a resumed take never pays an account other than the transfer's recipient".
 #[tokio::test]
 async fn a_resumed_take_never_pays_another_account() {

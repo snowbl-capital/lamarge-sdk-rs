@@ -8,9 +8,9 @@ mod venue;
 
 pub use amount::{Amount, ParseAmountError, SignedAmount};
 pub use ids::{
-    BlockNumber, ClaimSecret, ClientId, CloseId, Cursor, FillId, InvalidClientId, OrderId,
-    PageCursor, PortfolioRevision, PreparationId, QuoteIdentityId, Revision, SessionId,
-    SignatureBytes, TakeId, TransferId, WithdrawalId,
+    BlockNumber, BridgeId, ClaimSecret, ClientId, CloseId, Cursor, FillId, HyperliquidNonce,
+    InvalidClientId, MoveId, OrderId, PageCursor, PortfolioRevision, PreparationId,
+    QuoteIdentityId, Revision, SessionId, SignatureBytes, TakeId, TransferId, WithdrawalId,
 };
 pub use numeric::{Bps, Decimal, MaxParts, ParseDecimalError, ParsePriceError, Price};
 pub use open_enum::UnknownValue;

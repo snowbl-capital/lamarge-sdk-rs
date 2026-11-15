@@ -1,0 +1,42 @@
+{
+  "lamarge": {
+    "route": {
+      "funding": "venue",
+      "destination": "wallet",
+      "minimum_received": {
+        "token": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+        "amount": "4995002"
+      },
+      "from": "hyperliquid",
+      "to": "polymarket",
+      "amount_in": "5000000",
+      "capped": false,
+      "amount_out": "4997500",
+      "legs": [
+        {
+          "from": "hyperliquid",
+          "to": "polymarket",
+          "amount_in": "5000000",
+          "amount_out": "4997500",
+          "parts": 2,
+          "taker_fee": "2500",
+          "taker_fee_bps": 5
+        }
+      ]
+    },
+    "budget": "5000000"
+  },
+  "lamarge_unavailable": null,
+  "bridge": {
+    "provider": "relay",
+    "amount_in": "95000000",
+    "amount_out": "94990000",
+    "minimum_out": "94500000",
+    "account_credit": "94400000",
+    "wallet_surplus": "590000",
+    "eta_seconds": 12
+  },
+  "bridge_unavailable": null,
+  "unallocated": "0",
+  "unallocated_reason": null
+}

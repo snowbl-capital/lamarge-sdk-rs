@@ -310,6 +310,16 @@ impl Session {
         api::Withdrawals { inner: self.transport(), auth: self.auth() }
     }
 
+    /// The session's moves.
+    pub fn moves(&self) -> api::Moves<'_> {
+        api::Moves { inner: self.transport(), auth: self.auth() }
+    }
+
+    /// The session's external bridges.
+    pub fn bridges(&self) -> api::Bridges<'_> {
+        api::Bridges { inner: self.transport(), auth: self.auth() }
+    }
+
     /// The session's maker credentials.
     pub fn credentials(&self) -> api::Credentials<'_> {
         api::Credentials { inner: self.transport(), auth: self.auth() }

@@ -25,6 +25,7 @@ use crate::{
     types::{SignatureBytes, VenueId},
 };
 
+mod bridge;
 mod maker;
 mod quoter;
 mod records;
@@ -33,6 +34,7 @@ mod take;
 mod transfer;
 mod withdraw;
 
+pub use bridge::*;
 pub use maker::*;
 pub use quoter::*;
 pub use take::*;
