@@ -2,7 +2,7 @@
 
 All notable changes to this crate are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the crate follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): before 1.0, a minor version may break.
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-11-15
 
 ### Added
 
