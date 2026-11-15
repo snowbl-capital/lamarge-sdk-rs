@@ -178,6 +178,14 @@ ops! {
     FENCE_TRANSFER_CONVERSION =
         Op::post("reportTransferConversion", "/v1/transfers/{id}/conversion", Session);
     REPORT_TRANSFER_CONVERSION = FENCE_TRANSFER_CONVERSION.retried();
+    /// Idempotent while prepared, but another request may be preparing: never retried blind.
+    PREPARE_GROUPED_ROUTE =
+        Op::post("prepareGroupedRoute", "/v1/transfers/{id}/grouped", Session).secret();
+    ABORT_GROUPED_ROUTE =
+        Op::delete("abortGroupedRoute", "/v1/transfers/{id}/grouped", Session).retried();
+    COMMIT_GROUPED_ROUTE =
+        Op::post("commitGroupedRoute", "/v1/transfers/{id}/grouped/signatures", Session)
+            .retried();
     GET_TAKE = Op::get("getV1TakesId", "/v1/takes/{id}", Session).secret();
     DELETE_TAKE = Op::delete("deleteTake", "/v1/takes/{id}", Session);
     GET_TAKE_HISTORY = Op::get("getTakeHistory", "/v1/takes/history", Session).secret();
@@ -269,9 +277,6 @@ pub(crate) const DEFERRED: &[(&str, &str)] = &[
     ("getDirectOperation", "direct transfers send transactions: web-led"),
     ("reportDirectOperation", "direct transfers send transactions: web-led"),
     ("getDirectFunding", "direct transfers send transactions: web-led"),
-    ("prepareGroupedRoute", "routes and grouped routes: 0.3"),
-    ("abortGroupedRoute", "routes and grouped routes: 0.3"),
-    ("commitGroupedRoute", "routes and grouped routes: 0.3"),
     ("preparePaymentRefund", "refunds are an active market making obligation: 0.2"),
     ("submitPaymentRefund", "refunds are an active market making obligation: 0.2"),
     ("postEscrowWithdrawPrepare", "escrow available-balance withdrawal: web-only today"),
