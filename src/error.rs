@@ -86,6 +86,17 @@ pub enum Error {
     /// Another client fenced this bridge's deposit first: never send it from here.
     #[error("another client holds bridge {0}'s deposit: do not send")]
     DepositFenced(BridgeId),
+    /// A grouped route was not committed: it is aborted, no payment of it in force, its first
+    /// take still prepared to sign alone. Review the route before trying again.
+    #[error("route of transfer {transfer} not committed: {reason}")]
+    RouteNotCommitted {
+        /// The route's first transfer.
+        transfer: crate::types::TransferId,
+        /// Why.
+        reason: crate::flows::RouteNotCommitted,
+        /// The deadline it had, when known.
+        commit_by: Option<chrono::DateTime<chrono::Utc>>,
+    },
     /// The request sends transactions from the session's address (a Polygon conversion): run
     /// it with a [`TransactionSender`](crate::TransactionSender). Nothing was asked of the
     /// server.

@@ -79,6 +79,8 @@ pub(crate) struct TakeIntent {
     /// Signed at once with a transfer's withdrawal: a route's pay window, and signable only
     /// until the at-once cutoff leaves time to sign.
     pub(crate) at_once: bool,
+    /// A grouped route's second take, signed before the first delivers: a route's pay window.
+    pub(crate) route: bool,
 }
 
 /// What the flow read for the check: Lighter's owners of the accounts [`lighter_accounts`]
@@ -337,7 +339,7 @@ fn check_escrow_take(
         return Err(differs(details::PAYMENTS));
     }
     let receive = Receive::of(&intent.to, intent.delivery.wallet(), environment)?;
-    let pay_window = if intent.at_once {
+    let pay_window = if intent.at_once || intent.route {
         signed(deployments::ROUTE_PAY_WINDOW_SECONDS)
     } else {
         PAY_WINDOW_SECONDS

@@ -246,6 +246,7 @@ pub(crate) fn intent(from: &str, to: &str, amount_in: u128, min_out: u128) -> Ta
         payer: OWNER,
         payer_account: None,
         at_once: false,
+        route: false,
     }
 }
 

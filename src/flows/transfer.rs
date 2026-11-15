@@ -42,7 +42,7 @@ use crate::{
 /// How long a prepared, unsigned withdrawal may wait before its transfer is replaced.
 const STALE_PREPARATION_SECONDS: i64 = 45;
 /// How long a balance read stays fresh.
-const FRESH_SECONDS: i64 = 120;
+pub(super) const FRESH_SECONDS: i64 = 120;
 
 /// A transfer: `terms` traded by one take, funded first when the paying address lacks the
 /// funds. `id` names the transfer only: its takes are named by the server, also after a
@@ -60,6 +60,38 @@ pub struct TransferRequest {
     move_id: Option<MoveId>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     conversion: Option<ConversionTerms>,
+    /// A route's first transfer: where the route goes on from `to`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) then: Option<Continues>,
+    /// A route's continuation: the first transfer it goes on from.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) previous: Option<TransferId>,
+}
+
+/// Where a route's first transfer goes on to (`then`), in the route's terms.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub(super) struct Continues {
+    pub(super) to: VenueId,
+    pub(super) recipient: Address,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) destination: Option<Destination>,
+    pub(super) amount_in: Amount,
+    pub(super) min_out: Amount,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(super) max_fee_bps: Option<Bps>,
+}
+
+impl Continues {
+    /// The intent's `then` states these terms.
+    fn stated_by(&self, then: &model::TransferThen) -> bool {
+        then.to == self.to
+            && then.recipient == self.recipient
+            && then.destination.clone().unwrap_or(Destination::Venue)
+                == self.destination.clone().unwrap_or(Destination::Venue)
+            && then.amount_in == self.amount_in
+            && then.min_out == self.min_out
+            && then.max_fee_bps == self.max_fee_bps
+    }
 }
 
 impl TransferRequest {
@@ -73,6 +105,8 @@ impl TransferRequest {
             arrival_timeout: Duration::from_secs(600),
             move_id: None,
             conversion: None,
+            then: None,
+            previous: None,
         }
     }
 
@@ -262,6 +296,10 @@ struct TransferInput<'a> {
     max_fee_bps: Option<Bps>,
     #[serde(skip_serializing_if = "Option::is_none")]
     conversion: Option<ConversionInput>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    then: Option<&'a Continues>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    previous_transfer_id: Option<TransferId>,
 }
 
 /// `WalletConversionInput`: a replacement names the conversion it reuses.
@@ -332,7 +370,7 @@ impl<'de> Deserialize<'de> for Recovered {
 }
 
 /// A reservation nothing was signed, paid or delivered for.
-fn unsigned_reservation(fill: &Fill) -> bool {
+pub(super) fn unsigned_reservation(fill: &Fill) -> bool {
     matches!(fill.state, FillState::Prepared | FillState::Reserved | FillState::Expired)
         && fill.payment_leg == PaymentLeg::None
         && matches!(fill.maker_leg, MakerLeg::None | MakerLeg::Abandoned)
@@ -430,6 +468,8 @@ async fn post(
             min_out: conversion.min_out(),
             id: conversion_id,
         }),
+        then: request.then.as_ref(),
+        previous_transfer_id: request.previous,
     };
     let call = Call::new(&ops::POST_TRANSFER).json(&body)?;
     let intent: TransferIntent = session.transport().send(call, session.auth()).await?;
@@ -1162,7 +1202,12 @@ impl Run<'_> {
             (intent.payer == self.payer(), details::PAYER),
             (intent.recipient == terms.recipient.address(), details::RECIPIENT),
             (
-                intent.destination == terms.recipient.destination() && intent.then.is_none(),
+                intent.destination == terms.recipient.destination()
+                    && match (&intent.then, &self.request.then) {
+                        (None, None) => true,
+                        (Some(then), Some(asked)) => asked.stated_by(then),
+                        _ => false,
+                    },
                 details::DESTINATION,
             ),
             (
@@ -1175,7 +1220,7 @@ impl Run<'_> {
                 details::FUNDING,
             ),
             (intent.from_dex.is_none(), details::SOURCE_DEX),
-            (intent.previous_transfer_id.is_none(), details::CLIENT_REQUEST_ID),
+            (intent.previous_transfer_id == self.request.previous, details::CLIENT_REQUEST_ID),
             (intent.move_id == self.request.move_id, details::MOVE_ID),
         ];
         match rules.into_iter().find(|(ok, _)| !ok) {
@@ -1196,7 +1241,7 @@ fn covers(funds: Option<&Funds>, amount: Amount) -> Result<()> {
 
 /// What a take pays without moving margin, from a recent, successful escrow-chain read: the
 /// linked address's balance and its escrow available balance. `None` when unknown.
-fn prefunded(row: &Balance, now: DateTime<Utc>) -> Option<U256> {
+pub(super) fn prefunded(row: &Balance, now: DateTime<Utc>) -> Option<U256> {
     let read_at = row.chain_read_at?;
     if row.chain_error.is_some() || (now - read_at).num_seconds() >= FRESH_SECONDS {
         return None;

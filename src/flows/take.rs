@@ -345,6 +345,7 @@ pub(super) fn intent(
         payer,
         payer_account,
         at_once: false,
+        route: false,
     })
 }
 
@@ -409,6 +410,25 @@ pub(super) fn reserved(state: &FillState) -> bool {
 pub(super) fn signable_at_once(prepared: &TakePreparation, now: DateTime<Utc>) -> Result<bool> {
     let signing = i64::try_from(deployments::AT_ONCE_SIGNING_SECONDS).unwrap_or(i64::MAX);
     Ok(at_once_cutoff(prepared)?.saturating_sub(signing) > now.timestamp())
+}
+
+/// The signatures of `prepared`, checked against `intent`, without submitting them: the saved
+/// ones when they sign the same requests, else signed now and saved under the take.
+pub(super) async fn sign_only(
+    session: &Session,
+    prepared: TakePreparation,
+    intent: &TakeIntent,
+) -> Result<Vec<SignedItem>> {
+    let key = take_key(session, prepared.take.id);
+    match records::load::<SignedRecord>(session.journal(), &key).await? {
+        Some(saved) => saved.reuse(&request_digests(&prepared.to_sign), None),
+        None => sign(session, prepared, intent, None, &key).await,
+    }
+}
+
+/// Forgets the saved signatures of take `id`.
+pub(super) async fn forget(session: &Session, id: TakeId) -> Result<()> {
+    records::delete(session.journal(), &take_key(session, id), true).await
 }
 
 /// Whether the journal holds the signatures of take `id`.
