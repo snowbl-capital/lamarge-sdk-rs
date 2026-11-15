@@ -6,7 +6,7 @@ use alloy_primitives::Address;
 
 use crate::{
     model::MakerPreparationState,
-    types::{ClientId, OrderId, PreparationId, SetupStepKind, VenueId, open_enum},
+    types::{BridgeId, ClientId, OrderId, PreparationId, SetupStepKind, VenueId, open_enum},
 };
 
 /// `std::result::Result` with [`Error`] as the default error.
@@ -83,6 +83,9 @@ pub enum Error {
         /// The first step not done.
         step: SetupStepKind,
     },
+    /// Another client fenced this bridge's deposit first: never send it from here.
+    #[error("another client holds bridge {0}'s deposit: do not send")]
+    DepositFenced(BridgeId),
     /// A wait ran out; recover by running the same request (same client id) again.
     #[error("timed out waiting for {0}")]
     Timeout(&'static str),
@@ -340,6 +343,9 @@ open_enum! {
         BeforeFill = "before_fill",
         AmountShort = "amount_short",
         ExecutedLate = "executed_late",
+        Fenced = "fenced",
+        ChainUnread = "chain_unread",
+        ChainUnavailable = "chain_unavailable",
     }
 }
 

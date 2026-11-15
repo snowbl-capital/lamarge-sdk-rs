@@ -132,6 +132,11 @@ decimal_u64! {
     BlockNumber
 }
 
+decimal_u64! {
+    /// A `HyperCore` action nonce, in milliseconds (decimal string on the wire).
+    HyperliquidNonce
+}
+
 /// A balance's portfolio change counter (`<count>:<microseconds>` on the wire): a later
 /// observation compares greater.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -263,6 +268,14 @@ uuid_id! {
 uuid_id! {
     /// A withdrawal id.
     WithdrawalId
+}
+uuid_id! {
+    /// A move id.
+    MoveId
+}
+uuid_id! {
+    /// A bridge id.
+    BridgeId
 }
 
 /// An order id (bytes32, `0x`-hex on the wire).

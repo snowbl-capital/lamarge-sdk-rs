@@ -124,5 +124,113 @@
       "wallet_fee_on_payment": "0x1b4c4374729e",
       "wallet_fee_on_delivery": "0xfcb0d9ddb285"
     }
+  },
+  "relay": {
+    "depository": "0x4cd00e387622c35bddb9b4c962c136462338bc31",
+    "hyperliquid_depository": "0x66cf0aace1b4e562593bec10ec7868fba9932224",
+    "router": "0x0729e2a4716d9f7dd17858d5d504426d228697f7",
+    "solver": "0xf70da97812cb96acdf810712aa562db8dfa3dbef",
+    "solver_chain_id": "base",
+    "wallets": [
+      {
+        "chain": "hyperevm",
+        "chain_id": 999,
+        "currency": "0xb88339cb7199b77e23db6e890353e22632ba630f",
+        "decimals": 6,
+        "units": 6,
+        "vm": "evm"
+      },
+      {
+        "chain": "polygon",
+        "chain_id": 137,
+        "currency": "0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb",
+        "decimals": 6,
+        "units": 6,
+        "vm": "evm"
+      },
+      {
+        "chain": "polygon",
+        "chain_id": 137,
+        "currency": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+        "decimals": 6,
+        "units": 6,
+        "vm": "evm"
+      },
+      {
+        "chain": "arbitrum",
+        "chain_id": 42161,
+        "currency": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+        "decimals": 6,
+        "units": 6,
+        "vm": "evm"
+      },
+      {
+        "chain": "bnb",
+        "chain_id": 56,
+        "currency": "0x55d398326f99059ff775485246999027b3197955",
+        "decimals": 18,
+        "units": 18,
+        "vm": "evm"
+      }
+    ],
+    "accounts": {
+      "hyperliquid": {
+        "chain": "hyperliquid",
+        "chain_id": 1337,
+        "currency": "0x00000000000000000000000000000000",
+        "decimals": 8,
+        "units": 6,
+        "vm": "hyperliquid"
+      },
+      "polymarket": {
+        "chain": "polygon",
+        "chain_id": 137,
+        "currency": "0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb",
+        "decimals": 6,
+        "units": 6,
+        "vm": "evm"
+      },
+      "aster": {
+        "chain": "bnb",
+        "chain_id": 56,
+        "currency": "0x55d398326f99059ff775485246999027b3197955",
+        "decimals": 18,
+        "units": 18,
+        "vm": "evm"
+      },
+      "lighter": {
+        "chain": "lighter",
+        "chain_id": 3586256,
+        "currency": "0",
+        "decimals": 6,
+        "units": 6,
+        "vm": "lighter"
+      },
+      "gmx": {
+        "chain": "arbitrum",
+        "chain_id": 42161,
+        "currency": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+        "decimals": 6,
+        "units": 6,
+        "vm": "evm"
+      }
+    },
+    "origin_venues": [
+      "hyperliquid"
+    ],
+    "call_venues": [
+      "polymarket",
+      "gmx",
+      "aster"
+    ],
+    "account_minimums": {
+      "polymarket": "5000000"
+    },
+    "venue_deposits": {
+      "polymarket": "0xdca4af75705dbb50f62437045aff9921947917d2",
+      "gmx": "0x3f6772b95423fc03264adf90efb8a9922b6c8c6e",
+      "gmx_vault": "0xceaadfaf6a8c489b250e407987877c5fdfcdbe6e",
+      "aster": "0x128463a60784c4d3f46c23af3f65ed859ba87974"
+    }
   }
 }

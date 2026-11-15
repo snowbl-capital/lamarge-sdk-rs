@@ -1,0 +1,16 @@
+{
+  "client_move_id": "move-1",
+  "from": {
+    "venue": "hyperliquid"
+  },
+  "to": {
+    "venue": "wallet",
+    "chain_id": 42161,
+    "token": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+  },
+  "amount_in": "105000000",
+  "min_out": "102900000",
+  "payer": "0x000000000000000000000000000000000000dead",
+  "recipient": "0x000000000000000000000000000000000000dead",
+  "max_fee_bps": 5
+}

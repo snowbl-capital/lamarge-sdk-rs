@@ -1,0 +1,131 @@
+{
+  "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a60",
+  "client_move_id": "move-1",
+  "from": {
+    "venue": "hyperliquid",
+    "chain_id": null,
+    "token": null
+  },
+  "to": {
+    "venue": "wallet",
+    "chain_id": 42161,
+    "token": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+  },
+  "amount_in": "105000000",
+  "min_out": "102900000",
+  "payer": "0x000000000000000000000000000000000000dEaD",
+  "recipient": "0x000000000000000000000000000000000000dEaD",
+  "max_fee_bps": 5,
+  "transfers": [
+    {
+      "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a10",
+      "final": true
+    }
+  ],
+  "withdrawals": [],
+  "direct": [],
+  "bridges": [
+    {
+      "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a70",
+      "move_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a60",
+      "client_bridge_id": "move-1.bridge-1",
+      "provider": "relay",
+      "request_id": "0x41f36de56d99ceae02334025c4cc644f6b4410e5941a8257d22aee6d81b8460e",
+      "state": "refunded",
+      "from": {
+        "venue": "hyperliquid",
+        "chain_id": null,
+        "token": null
+      },
+      "to": {
+        "venue": "wallet",
+        "chain_id": 42161,
+        "token": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+      },
+      "amount_in": "100000000",
+      "min_out": "98000000",
+      "payer": "0x000000000000000000000000000000000000dEaD",
+      "recipient": "0x000000000000000000000000000000000000dEaD",
+      "order": {
+        "id": "0x41f36de56d99ceae02334025c4cc644f6b4410e5941a8257d22aee6d81b8460e",
+        "data": {
+          "version": "v1",
+          "solverChainId": "base",
+          "solver": "0xf70da97812cb96acdf810712aa562db8dfa3dbef",
+          "salt": "0x527036f42b6f8d1cdc07f0058dee0bfe3a15ee24e480c66824df6dd991d7f773",
+          "inputs": [
+            {
+              "payment": {
+                "chainId": "hyperliquid",
+                "currency": "0x00000000000000000000000000000000",
+                "amount": "10000000000",
+                "weight": "1"
+              },
+              "refunds": [
+                {
+                  "chainId": "hyperliquid",
+                  "recipient": "0x000000000000000000000000000000000000dEaD",
+                  "currency": "0x00000000000000000000000000000000",
+                  "minimumAmount": "0",
+                  "deadline": 1795262563,
+                  "extraData": "0x"
+                },
+                {
+                  "chainId": "arbitrum",
+                  "recipient": "0x000000000000000000000000000000000000dEaD",
+                  "currency": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                  "minimumAmount": "0",
+                  "deadline": 1795262563,
+                  "extraData": "0x0000000000000000000000000729e2a4716d9f7dd17858d5d504426d228697f7"
+                }
+              ]
+            }
+          ],
+          "output": {
+            "chainId": "arbitrum",
+            "payments": [
+              {
+                "recipient": "0x000000000000000000000000000000000000dEaD",
+                "currency": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                "minimumAmount": "97978139",
+                "expectedAmount": "99977692"
+              }
+            ],
+            "calls": [],
+            "deadline": 1795262563,
+            "extraData": "0x0000000000000000000000000729e2a4716d9f7dd17858d5d504426d228697f7"
+          },
+          "fees": []
+        },
+        "deadline": 1795262563
+      },
+      "nonce": "1794657763758",
+      "account_credit": null,
+      "amount_out": null,
+      "wallet_surplus": null,
+      "refund": {
+        "chain_id": 1337,
+        "token": "0x00000000000000000000000000000000",
+        "recipient": "0x000000000000000000000000000000000000dEaD",
+        "amount": "100000000"
+      },
+      "origin_txs": [
+        "0x3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f"
+      ],
+      "destination_txs": [],
+      "refund_txs": [
+        "0x4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e"
+      ],
+      "withdrawal_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a20",
+      "error": null,
+      "expires_at": "2026-11-14T12:05:00Z",
+      "created_at": "2026-11-14T12:00:00Z",
+      "updated_at": "2026-11-14T12:03:00Z"
+    }
+  ],
+  "closed_at": "2026-11-14T12:01:00Z",
+  "unallocated": "0",
+  "unallocated_reason": null,
+  "state": "settling",
+  "created_at": "2026-11-14T11:59:30Z"
+}

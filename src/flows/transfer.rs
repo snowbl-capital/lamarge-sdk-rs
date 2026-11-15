@@ -32,7 +32,8 @@ use crate::{
     },
     transport::{Call, ops},
     types::{
-        Amount, Bps, ClientId, MaxParts, SetupStepKind, SignatureBytes, TakeId, TransferId, VenueId,
+        Amount, Bps, ClientId, MaxParts, MoveId, SetupStepKind, SignatureBytes, TakeId, TransferId,
+        VenueId,
     },
 };
 
@@ -53,6 +54,8 @@ pub struct TransferRequest {
     terms: TradeTerms,
     poll_interval: Duration,
     arrival_timeout: Duration,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    move_id: Option<MoveId>,
 }
 
 impl TransferRequest {
@@ -64,7 +67,16 @@ impl TransferRequest {
             terms,
             poll_interval: Duration::from_secs(2),
             arrival_timeout: Duration::from_secs(600),
+            move_id: None,
         }
+    }
+
+    /// Attaches the transfer to move `id` (its replacements too), from the move's origin and
+    /// payer to its destination; the move's budget counts its take's `amount_in`.
+    #[must_use]
+    pub fn move_id(mut self, id: MoveId) -> Self {
+        self.move_id = Some(id);
+        self
     }
 
     /// Between reads while funds or a permit arrive.
@@ -187,6 +199,8 @@ impl Session {
 /// `POST /v1/transfers` body.
 #[derive(Serialize)]
 struct TransferInput<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    move_id: Option<MoveId>,
     #[serde(skip_serializing_if = "Option::is_none")]
     funding: Option<Funding>,
     client_transfer_id: &'a ClientId,
@@ -334,6 +348,7 @@ async fn post(
     let terms = &request.terms;
     let destination = terms.recipient.destination();
     let body = TransferInput {
+        move_id: request.move_id,
         funding: terms.wallet_funding().then_some(Funding::Wallet),
         client_transfer_id: client_id,
         from: &terms.from,
@@ -1041,6 +1056,7 @@ impl Run<'_> {
             ),
             (intent.from_dex.is_none(), details::SOURCE_DEX),
             (intent.previous_transfer_id.is_none(), details::CLIENT_REQUEST_ID),
+            (intent.move_id == self.request.move_id, details::MOVE_ID),
         ];
         match rules.into_iter().find(|(ok, _)| !ok) {
             Some((_, detail)) => Err(changed(detail).into()),

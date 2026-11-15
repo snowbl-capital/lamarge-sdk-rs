@@ -1,6 +1,7 @@
 {
   "data": [
     {
+      "move_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a60",
       "conversion": {
         "amount_in": "5002500",
         "min_out": "5000000",
@@ -81,6 +82,7 @@
       },
       "withdrawal": {
         "id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a20",
+        "move_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a60",
         "venue": "hyperliquid",
         "from_dex": "xyz",
         "kind": "withdrawal",

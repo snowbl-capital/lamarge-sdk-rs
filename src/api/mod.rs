@@ -3,11 +3,13 @@
 //! unauthorised call does not compile.
 
 mod account;
+mod bridges;
 mod credentials;
 mod events;
 mod explorer;
 mod fills;
 mod market;
+mod moves;
 mod orders;
 mod page;
 mod takes;
@@ -16,7 +18,9 @@ mod withdrawals;
 
 use std::{fmt, sync::Arc};
 
+pub use bridges::{BridgeRequest, WalletSource};
 pub use credentials::CredentialRequest;
+pub use moves::{MoveQuery, MoveRecipient, MoveRequest};
 pub use transfers::RouteQuery;
 
 use crate::{
@@ -71,6 +75,10 @@ handle! {
     Orders;
     /// The session's withdrawals.
     Withdrawals;
+    /// The session's moves: plans and the records their parts attach to.
+    Moves;
+    /// The session's external bridges.
+    Bridges;
     /// The session's maker credentials.
     Credentials;
 }

@@ -8,5 +8,6 @@ pub(crate) mod fees;
 pub(crate) mod hyperliquid;
 pub(crate) mod lighter;
 pub(crate) mod polymarket;
+pub(crate) mod relay;
 pub(crate) mod signing;
 pub(crate) mod siwe;

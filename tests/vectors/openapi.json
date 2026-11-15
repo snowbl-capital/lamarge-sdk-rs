@@ -1320,6 +1320,717 @@
         }
       }
     },
+    "/v1/moves/quote": {
+      "get": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Plan a move",
+        "operationId": "quoteMove",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "description": "What LaMarge's makers fill now and what an external bridge would carry of the rest, at the floor rate `min_out / amount_in` ([moves](/how-it-works#moves-and-bridges)). A plan, not a reservation: each part is quoted again before signing. A refusal only LaMarge's part meets (no route, no liquidity, an Aster account without a deposit…) is `lamarge_unavailable`; the bridge's, `bridge_unavailable`.",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MoveVenue"
+            }
+          },
+          {
+            "name": "from_chain_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "With `from: wallet`."
+          },
+          {
+            "name": "from_token",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Address"
+            },
+            "description": "With `from: wallet`."
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MoveVenue"
+            }
+          },
+          {
+            "name": "to_chain_id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "With `to: wallet`."
+          },
+          {
+            "name": "to_token",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Address"
+            },
+            "description": "With `to: wallet`."
+          },
+          {
+            "name": "amount_in",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Amount"
+            }
+          },
+          {
+            "name": "min_out",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Amount"
+            }
+          },
+          {
+            "name": "payer",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Address"
+            },
+            "description": "The master address when omitted."
+          },
+          {
+            "name": "recipient",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "An address; on `to: lighter`, the Lighter account index."
+          },
+          {
+            "name": "max_fee_bps",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/FeeBps"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The plan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MoveQuote"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "422": {
+            "$ref": "#/components/responses/AccountNotLinked"
+          }
+        }
+      }
+    },
+    "/v1/moves": {
+      "post": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Create a move",
+        "operationId": "createMove",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "description": "Records the move's terms, the one ID that follows every part: LaMarge transfers, the withdrawals that feed a bridge, and bridges. Reserves and moves nothing. The same `client_move_id` and terms return the move.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing move.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Move"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Move"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "409": {
+            "$ref": "#/components/responses/StateConflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/AccountNotLinked"
+          }
+        }
+      }
+    },
+    "/v1/moves/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Read a move",
+        "operationId": "getMove",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "description": "Every attached part and the move's state; each part's own view holds its details.",
+        "responses": {
+          "200": {
+            "description": "The move.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Move"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/moves/{id}/close": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Close a move",
+        "operationId": "closeMove",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "description": "Declares that no part will be added, with what no part carries. Idempotent with the same body; refused while a bridge is `prepared`. Then the move is `settling` until every part is final.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "unallocated"
+                ],
+                "properties": {
+                  "unallocated": {
+                    "$ref": "#/components/schemas/Amount"
+                  },
+                  "unallocated_reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The move.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Move"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/StateConflict"
+          }
+        }
+      }
+    },
+    "/v1/moves/{id}/bridges": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Create a bridge",
+        "operationId": "createBridge",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "description": "Quotes the external bridge for `amount_in` of the move, from its origin or, with `from_wallet`, from the payer's wallet on the origin chain, and returns its order to check and sign. The move's bridges not `failed`, `expired` or `refunded` stay within its `amount_in`. The same `client_bridge_id` and terms return the bridge.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BridgeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing bridge.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bridge"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Quoted bridge.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bridge"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`VALIDATION_ERROR`; `reason` `unsupported` when the bridge provider refuses the route.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "`STATE_CONFLICT`: the move is closed, its bridges would exceed its `amount_in`, or a client id reused with other terms; `SLIPPAGE`: the bridge's guaranteed output is below the part's floor.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/AccountNotLinked"
+          },
+          "502": {
+            "description": "`VENUE_UNAVAILABLE`: the bridge provider refused or did not answer; `reason` `insufficient_liquidity`, `below_minimum` or `provider_unavailable`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bridges/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Read a bridge",
+        "operationId": "getBridge",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The bridge.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bridge"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/bridges/{id}/funding": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Read bridge deposit funds",
+        "operationId": "getBridgeFunding",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "description": "A wallet-origin bridge's fresh token balance and allowance of the payer toward the provider's depository, on the origin chain.",
+        "responses": {
+          "200": {
+            "description": "Fresh token balance and allowance.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "owner",
+                    "token",
+                    "spender",
+                    "balance",
+                    "allowance",
+                    "block",
+                    "observed_at"
+                  ],
+                  "properties": {
+                    "owner": {
+                      "$ref": "#/components/schemas/Address"
+                    },
+                    "token": {
+                      "$ref": "#/components/schemas/Address"
+                    },
+                    "spender": {
+                      "$ref": "#/components/schemas/Address"
+                    },
+                    "balance": {
+                      "$ref": "#/components/schemas/Amount"
+                    },
+                    "allowance": {
+                      "$ref": "#/components/schemas/Amount"
+                    },
+                    "block": {
+                      "type": "integer"
+                    },
+                    "observed_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "`STATE_CONFLICT`: a HyperCore bridge, which spends no wallet funds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "`VENUE_UNAVAILABLE`, `reason` `chain_unread` when LaMarge reads no node of the origin chain (BSC), `chain_unavailable` when it did not answer: retry later.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bridges/{id}/signatures": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Submit a HyperCore bridge's signatures",
+        "operationId": "signBridge",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "description": "The payer's signatures of the order's nonce mapping and of the `SendAsset` to the provider's depository, as the SDK rebuilds them from the order. LaMarge registers the mapping, then relays the send as a withdrawal (`withdrawal_id`). Resubmitting the same signatures returns the bridge.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "authorization",
+                  "send_asset"
+                ],
+                "properties": {
+                  "authorization": {
+                    "$ref": "#/components/schemas/Signature"
+                  },
+                  "send_asset": {
+                    "$ref": "#/components/schemas/Signature"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The bridge.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bridge"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`VALIDATION_ERROR` or `BAD_SIGNATURE`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "`STATE_CONFLICT`: the bridge is not a HyperCore one awaiting signatures, or another transfer on the account must end first (`Retry-After`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`VENUE_DISABLED` while Hyperliquid is disabled, or `ACCOUNT_NOT_LINKED` once the payer is no longer the linked account.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "`VENUE_UNAVAILABLE`: the provider did not confirm the mapping; resubmit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bridges/{id}/transactions": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Transfers"
+        ],
+        "summary": "Fence or report a bridge deposit",
+        "operationId": "reportBridgeTransaction",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "description": "A wallet-origin bridge. An empty body, before the deposit prompt, fences other tabs and devices; after a lost answer, never prompt again. Only the request that takes the fence succeeds: a second one is `STATE_CONFLICT` with reason `fenced`. Then report each broadcast deposit `tx_hash`, replacements included (at most eight). `unsent: true`, only while no hash is reported, states that the wallet refused before broadcasting: the bridge fails.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tx_hash": {
+                    "$ref": "#/components/schemas/Bytes32"
+                  },
+                  "unsent": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The bridge.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bridge"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthenticated"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/StateConflict"
+          }
+        }
+      }
+    },
     "/v1/wallets/{venue}": {
       "get": {
         "tags": [
@@ -4364,6 +5075,10 @@
                   },
                   "envelope": {
                     "$ref": "#/components/schemas/AsterEnvelope"
+                  },
+                  "move_id": {
+                    "$ref": "#/components/schemas/Uuid",
+                    "description": "The move this withdrawal to the signer feeds a bridge for; an exact retry keeps the first."
                   }
                 },
                 "additionalProperties": false
@@ -5710,6 +6425,10 @@
           "min_out"
         ],
         "properties": {
+          "move_id": {
+            "$ref": "#/components/schemas/Uuid",
+            "description": "The move this GMX withdrawal belongs to ([moves](/how-it-works#moves-and-bridges)): a withdrawal to the payer's wallet from the move's GMX origin."
+          },
           "client_operation_id": {
             "type": "string",
             "minLength": 1,
@@ -5771,6 +6490,16 @@
           "received"
         ],
         "properties": {
+          "move_id": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "$ref": "#/components/schemas/Uuid"
           },
@@ -5847,6 +6576,642 @@
             ]
           }
         }
+      },
+      "MoveVenue": {
+        "type": "string",
+        "enum": [
+          "hyperliquid",
+          "polymarket",
+          "gmx",
+          "aster",
+          "lighter",
+          "wallet"
+        ],
+        "description": "A venue account, or `wallet` with a chain and token."
+      },
+      "MoveEndpoint": {
+        "type": "object",
+        "required": [
+          "venue"
+        ],
+        "properties": {
+          "venue": {
+            "$ref": "#/components/schemas/MoveVenue"
+          },
+          "chain_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "With `wallet`: 999 (USDC), 137 (pUSD or native USDC), 42161 (USDC) or 56 (USDT)."
+          },
+          "token": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Address"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "MoveRequest": {
+        "type": "object",
+        "required": [
+          "client_move_id",
+          "from",
+          "to",
+          "amount_in",
+          "min_out",
+          "payer",
+          "recipient"
+        ],
+        "properties": {
+          "client_move_id": {
+            "$ref": "#/components/schemas/ClientId"
+          },
+          "from": {
+            "$ref": "#/components/schemas/MoveEndpoint"
+          },
+          "to": {
+            "$ref": "#/components/schemas/MoveEndpoint"
+          },
+          "amount_in": {
+            "$ref": "#/components/schemas/Amount",
+            "description": "Everything the move takes from its origin, in the origin token's base units."
+          },
+          "min_out": {
+            "$ref": "#/components/schemas/Amount",
+            "description": "The least delivered over all parts, in the destination token's base units; each part's floor is its share at the same rate, rounded up."
+          },
+          "payer": {
+            "$ref": "#/components/schemas/Address",
+            "description": "The master address or the account linked on `from`; a wallet origin's owner."
+          },
+          "recipient": {
+            "type": "string",
+            "description": "An address; on `to: lighter`, the Lighter account index, which the client checks on Lighter."
+          },
+          "max_fee_bps": {
+            "$ref": "#/components/schemas/FeeBps"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MoveQuote": {
+        "type": "object",
+        "required": [
+          "lamarge",
+          "lamarge_unavailable",
+          "bridge",
+          "bridge_unavailable",
+          "unallocated",
+          "unallocated_reason"
+        ],
+        "properties": {
+          "lamarge": {
+            "description": "LaMarge's part, null when none.",
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "route",
+                  "budget"
+                ],
+                "properties": {
+                  "route": {
+                    "$ref": "#/components/schemas/Route"
+                  },
+                  "budget": {
+                    "$ref": "#/components/schemas/Amount",
+                    "description": "What the part takes from the origin, in the origin token (a Polygon native-USDC origin's conversion input)."
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lamarge_unavailable": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "no_route",
+              "no_liquidity",
+              "no_deposit",
+              "not_admitted",
+              "unhealthy",
+              "fee_consent",
+              null
+            ],
+            "description": "Why LaMarge takes no part."
+          },
+          "bridge": {
+            "description": "The external part for the rest, null when none; an estimate, quoted again before signing.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BridgeQuote"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bridge_unavailable": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "insufficient_liquidity",
+              "below_minimum",
+              "unsupported",
+              "hyperliquid_mode",
+              "provider_unavailable",
+              "slippage",
+              "disabled",
+              null
+            ],
+            "description": "Why no bridge carries the rest; `slippage` when its guaranteed output is below the part's floor; `disabled` when the deployment has no bridge provider."
+          },
+          "unallocated": {
+            "$ref": "#/components/schemas/Amount",
+            "description": "What neither part carries, in the origin token."
+          },
+          "unallocated_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "BridgeQuote": {
+        "type": "object",
+        "required": [
+          "provider",
+          "amount_in",
+          "amount_out",
+          "minimum_out",
+          "account_credit",
+          "wallet_surplus",
+          "eta_seconds"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "relay"
+            ]
+          },
+          "amount_in": {
+            "$ref": "#/components/schemas/Amount"
+          },
+          "amount_out": {
+            "$ref": "#/components/schemas/Amount",
+            "description": "Expected, in the destination token."
+          },
+          "minimum_out": {
+            "$ref": "#/components/schemas/Amount",
+            "description": "Guaranteed by the provider, in the destination token."
+          },
+          "account_credit": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Amount"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Polymarket, GMX and Aster accounts receive exactly this; the rest of the output goes to the recipient's wallet on that chain. Null otherwise."
+          },
+          "wallet_surplus": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Amount"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "`amount_out` less `account_credit`, expected."
+          },
+          "eta_seconds": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MovePart": {
+        "type": "object",
+        "required": [
+          "id",
+          "final"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "final": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Move": {
+        "type": "object",
+        "required": [
+          "id",
+          "client_move_id",
+          "from",
+          "to",
+          "amount_in",
+          "min_out",
+          "payer",
+          "recipient",
+          "max_fee_bps",
+          "transfers",
+          "withdrawals",
+          "direct",
+          "bridges",
+          "closed_at",
+          "unallocated",
+          "unallocated_reason",
+          "state",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "client_move_id": {
+            "type": "string"
+          },
+          "from": {
+            "$ref": "#/components/schemas/MoveEndpoint"
+          },
+          "to": {
+            "$ref": "#/components/schemas/MoveEndpoint"
+          },
+          "amount_in": {
+            "$ref": "#/components/schemas/Amount"
+          },
+          "min_out": {
+            "$ref": "#/components/schemas/Amount"
+          },
+          "payer": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "max_fee_bps": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FeeBps"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "transfers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MovePart"
+            },
+            "description": "Root transfers; a route's continuation is its root's (`previous_transfer_id`). Final once its take is final or it was cancelled."
+          },
+          "withdrawals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MovePart"
+            }
+          },
+          "direct": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MovePart"
+            }
+          },
+          "bridges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bridge"
+            }
+          },
+          "closed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "unallocated": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Amount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unallocated_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "open",
+              "settling",
+              "final"
+            ],
+            "description": "`open` until closed; `settling` closed with a part still running; `final` closed with every part final."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BridgeRequest": {
+        "type": "object",
+        "required": [
+          "client_bridge_id",
+          "amount_in"
+        ],
+        "properties": {
+          "client_bridge_id": {
+            "$ref": "#/components/schemas/ClientId"
+          },
+          "amount_in": {
+            "$ref": "#/components/schemas/Amount",
+            "description": "In the origin token's base units."
+          },
+          "from_wallet": {
+            "description": "Bridge from the payer's wallet on the origin chain instead of the origin (after a withdrawal there).",
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "chain_id",
+                  "token"
+                ],
+                "properties": {
+                  "chain_id": {
+                    "type": "integer"
+                  },
+                  "token": {
+                    "$ref": "#/components/schemas/Address"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Bridge": {
+        "type": "object",
+        "required": [
+          "id",
+          "move_id",
+          "client_bridge_id",
+          "provider",
+          "request_id",
+          "state",
+          "from",
+          "to",
+          "amount_in",
+          "min_out",
+          "payer",
+          "recipient",
+          "order",
+          "nonce",
+          "account_credit",
+          "amount_out",
+          "wallet_surplus",
+          "refund",
+          "origin_txs",
+          "destination_txs",
+          "refund_txs",
+          "withdrawal_id",
+          "error",
+          "expires_at",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "move_id": {
+            "$ref": "#/components/schemas/Uuid"
+          },
+          "client_bridge_id": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "relay"
+            ]
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/Bytes32",
+            "description": "The provider's request ID, for its support."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "prepared",
+              "submitting",
+              "pending",
+              "completed",
+              "refunded",
+              "stuck",
+              "failed",
+              "expired"
+            ],
+            "description": "`prepared`: quoted, nothing signed. `submitting`: signatures received or deposit prompt fenced. `pending`: the provider saw the deposit. `completed`, `refunded`: final. `stuck`: debited, the provider neither filled nor refunded on its own; contact it with `request_id`. `failed`: nothing debited (send refused, deposit reverted or never sent). `expired`: nothing signed by `expires_at`."
+          },
+          "from": {
+            "$ref": "#/components/schemas/MoveEndpoint"
+          },
+          "to": {
+            "$ref": "#/components/schemas/MoveEndpoint"
+          },
+          "amount_in": {
+            "$ref": "#/components/schemas/Amount"
+          },
+          "min_out": {
+            "$ref": "#/components/schemas/Amount"
+          },
+          "payer": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "order": {
+            "type": "object",
+            "required": [
+              "id",
+              "data",
+              "deadline"
+            ],
+            "description": "The provider's order; the client derives and checks every payload it signs from `data`.",
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Bytes32"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Relay's `protocol.v2.orderData`, verbatim."
+              },
+              "deadline": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          },
+          "nonce": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A HyperCore origin's nonce, shared by the mapping and the send."
+          },
+          "account_credit": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Amount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "amount_out": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Amount"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Delivered, once completed, in the destination token."
+          },
+          "wallet_surplus": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Amount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "refund": {
+            "description": "What the provider refunded, where, once refunded.",
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "chain_id",
+                  "token",
+                  "recipient",
+                  "amount"
+                ],
+                "properties": {
+                  "chain_id": {
+                    "type": "integer"
+                  },
+                  "token": {
+                    "type": "string"
+                  },
+                  "recipient": {
+                    "type": "string"
+                  },
+                  "amount": {
+                    "$ref": "#/components/schemas/Amount"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "origin_txs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "destination_txs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "refund_txs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "withdrawal_id": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
       },
       "EscrowChain": {
         "type": "object",
@@ -8352,6 +9717,10 @@
           "recipient"
         ],
         "properties": {
+          "move_id": {
+            "$ref": "#/components/schemas/Uuid",
+            "description": "The move this transfer belongs to ([moves](/how-it-works#moves-and-bridges)): the root of a route only, from the move's origin and payer, ending at its destination."
+          },
           "conversion": {
             "$ref": "#/components/schemas/WalletConversionInput"
           },
@@ -8553,6 +9922,16 @@
           "destination"
         ],
         "properties": {
+          "move_id": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "conversion": {
             "$ref": "#/components/schemas/WalletConversion"
           },
@@ -9270,6 +10649,16 @@
           "relayed_at"
         ],
         "properties": {
+          "move_id": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid"
@@ -9416,7 +10805,7 @@
           "relayed",
           "refused"
         ],
-        "description": "`relayed`: acknowledged by the venue; arrival unconfirmed. `refused`: rejected by the venue, or `queued` and unstarted after two minutes (Aster: 50 s after its envelope). `submitting` becomes `unknown` after a minute. `unknown`: maybe submitted; never resend."
+        "description": "`relayed`: acknowledged by the venue; arrival unconfirmed. `refused`: rejected by the venue, or `queued` and unstarted after two minutes (Aster: 50 s after its envelope). A Polymarket withdrawal or Hyperliquid transfer the venue did not answer stays `queued`, sent again unchanged, and ends `relayed` or `unknown`. `submitting` becomes `unknown` after a minute. `unknown`: maybe submitted; never resend. A Polymarket one resolves from its exchange: `relayed` once executed, `refused` an hour after signing if not."
       },
       "ChainHealth": {
         "type": "object",
