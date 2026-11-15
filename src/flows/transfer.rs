@@ -11,11 +11,13 @@ use tokio::time::Instant;
 use tracing::Instrument as _;
 
 use super::{
-    Recipient, TradeTerms, linked, poll_until, records,
+    Recipient, TradeTerms,
+    conversion::{self, ConversionTerms, Progress},
+    linked, poll_until, records,
     take::{self, AtOnce, TakeInput},
 };
 use crate::{
-    Error, Result, Session,
+    Error, Result, Session, TransactionSender,
     book::{BookError, SweepTerms, delivery_floor},
     deployments,
     error::{ApiError, ErrorCode, Reason},
@@ -56,6 +58,8 @@ pub struct TransferRequest {
     arrival_timeout: Duration,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     move_id: Option<MoveId>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    conversion: Option<ConversionTerms>,
 }
 
 impl TransferRequest {
@@ -68,7 +72,17 @@ impl TransferRequest {
             poll_interval: Duration::from_secs(2),
             arrival_timeout: Duration::from_secs(600),
             move_id: None,
+            conversion: None,
         }
+    }
+
+    /// Funds a wallet-funded transfer from Polymarket by converting native USDC first: the
+    /// terms' `amount_in` must be the conversion's `min_out`. Run it with
+    /// [`Session::transfer_with`] and the sender of the session's transactions.
+    #[must_use]
+    pub fn conversion(mut self, terms: ConversionTerms) -> Self {
+        self.conversion = Some(terms);
+        self
     }
 
     /// Attaches the transfer to move `id` (its replacements too), from the move's origin and
@@ -124,6 +138,12 @@ pub enum PendingReason {
     ArrivalUnconfirmed,
     /// The escrow's permit has not confirmed within the arrival timeout.
     AuthorizationUnconfirmed,
+    /// The conversion's transactions are sent or of unknown outcome, not confirmed within the
+    /// arrival timeout. Nothing is asked again for them.
+    ConversionUnconfirmed,
+    /// The sender sent nothing for the conversion (the owner declined, a signature timed out,
+    /// gas was missing): running again asks again, for the same transaction.
+    ConversionNotSent,
     /// The venue's answer to the withdrawal is unknown: it may have been sent. Never sign
     /// another.
     WithdrawalUnknown,
@@ -192,7 +212,32 @@ impl Session {
     /// ```
     pub async fn transfer(&self, request: &TransferRequest) -> Result<TransferOutcome> {
         let span = tracing::info_span!("lamarge.transfer", client_transfer_id = %request.id);
-        run(self, request).instrument(span).await
+        run(self, request, None).instrument(span).await
+    }
+
+    /// [`Self::transfer`], sending the transactions the request needs through `sender`: the
+    /// conversion of [`TransferRequest::conversion`], an `approve` first when the escrow's
+    /// allowance is short.
+    ///
+    /// Each transaction is journalled before it is asked, under a stable
+    /// [`Transaction::id`](crate::Transaction::id), and with its hash once returned. A run that
+    /// restarts never asks again for one it may have sent: it asks
+    /// [`TransactionSender::status`]. A sender that sent nothing ends the run
+    /// [`PendingReason::ConversionNotSent`]; one sent and not yet confirmed,
+    /// [`PendingReason::ConversionUnconfirmed`]. Run the same request with a sender again to
+    /// resume.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::transfer`]; `Verification(..)` when the prepared conversion is not the
+    /// request's or the pinned deployment's, or the native USDC balance no longer covers it.
+    pub async fn transfer_with(
+        &self,
+        request: &TransferRequest,
+        sender: &dyn TransactionSender,
+    ) -> Result<TransferOutcome> {
+        let span = tracing::info_span!("lamarge.transfer", client_transfer_id = %request.id);
+        run(self, request, Some(sender)).instrument(span).await
     }
 }
 
@@ -215,6 +260,17 @@ struct TransferInput<'a> {
     destination: Option<Destination>,
     #[serde(skip_serializing_if = "Option::is_none")]
     max_fee_bps: Option<Bps>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    conversion: Option<ConversionInput>,
+}
+
+/// `WalletConversionInput`: a replacement names the conversion it reuses.
+#[derive(Serialize)]
+struct ConversionInput {
+    amount_in: Amount,
+    min_out: Amount,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    id: Option<uuid::Uuid>,
 }
 
 /// The transfer a request last became (`{ns}transfer:{client_transfer_id}`), kept after it fills.
@@ -308,8 +364,15 @@ impl<E: Into<Error>> From<E> for Halt {
 
 type Step<T> = std::result::Result<T, Halt>;
 
-async fn run(session: &Session, request: &TransferRequest) -> Result<TransferOutcome> {
+async fn run(
+    session: &Session,
+    request: &TransferRequest,
+    sender: Option<&dyn TransactionSender>,
+) -> Result<TransferOutcome> {
     validate(request)?;
+    if request.conversion.is_some() && sender.is_none() {
+        return Err(Error::TransactionSenderRequired);
+    }
     let pointer = session.record_key(&format!("transfer:{}", request.id));
     // One run per request across the journal's sessions.
     let _turn = session.journal().lock(&pointer).await;
@@ -322,9 +385,10 @@ async fn run(session: &Session, request: &TransferRequest) -> Result<TransferOut
             let venues = session.client().market().venues().await?;
             check_wallet_capability(&venues, &request.terms.from, session.escrow_environment())?;
         }
-        post(session, request, &pointer, &request.id, false).await?
+        post(session, request, &pointer, &request.id, false, None).await?
     };
-    let mut run = Run { session, request, pointer, intent, authorizing: false };
+    let conversion = intent.conversion.as_ref().and_then(|conversion| conversion.id);
+    let mut run = Run { session, request, pointer, intent, authorizing: false, sender, conversion };
     match run.start().await {
         Ok(fills) => Ok(TransferOutcome::Filled { intent: run.intent, fills }),
         Err(Halt::Pending(reason)) => {
@@ -344,6 +408,7 @@ async fn post(
     pointer: &str,
     client_id: &ClientId,
     funded: bool,
+    conversion_id: Option<uuid::Uuid>,
 ) -> Result<TransferIntent> {
     let terms = &request.terms;
     let destination = terms.recipient.destination();
@@ -360,6 +425,11 @@ async fn post(
         recipient: terms.recipient.address(),
         destination: (destination == Destination::Wallet).then_some(destination),
         max_fee_bps: terms.max_fee_bps,
+        conversion: request.conversion.map(|conversion| ConversionInput {
+            amount_in: conversion.amount_in(),
+            min_out: conversion.min_out(),
+            id: conversion_id,
+        }),
     };
     let call = Call::new(&ops::POST_TRANSFER).json(&body)?;
     let intent: TransferIntent = session.transport().send(call, session.auth()).await?;
@@ -391,6 +461,19 @@ fn validate(request: &TransferRequest) -> Result<()> {
         // GMX margin leaves by a transaction the signer sends: not in this release.
         return Err(details::unsupported(details::VENUE).into());
     }
+    if let Some(conversion) = &request.conversion {
+        let funded = terms.from == VenueId::Polymarket
+            && terms.wallet_funding()
+            && terms.amount_in == conversion.min_out();
+        if !funded {
+            return Err(Error::InvalidRequest(
+                "a conversion funds a wallet-funded transfer from Polymarket of its min_out".into(),
+            ));
+        }
+        if !conversion.valid() {
+            return Err(Error::InvalidRequest("conversion below the escrow's floor".into()));
+        }
+    }
     Ok(())
 }
 
@@ -403,6 +486,10 @@ struct Run<'a> {
     intent: TransferIntent,
     /// The permit of the plan is not final yet: the take waits for it.
     authorizing: bool,
+    /// Sends the conversion's transactions.
+    sender: Option<&'a dyn TransactionSender>,
+    /// The conversion the transfer was first answered with: its replacements reuse it.
+    conversion: Option<uuid::Uuid>,
 }
 
 impl Run<'_> {
@@ -443,6 +530,9 @@ impl Run<'_> {
             renewed_from = Some(id);
         }
         self.renewed(renewed_from).await?;
+        if self.intent.conversion.is_some() && self.intent.take_id.is_none() {
+            self.convert().await?;
+        }
         let funded = self.marked(&funded(self.intent.id)).await?;
         if let Some(fills) = self.recover_take().await? {
             return Ok(fills);
@@ -460,6 +550,30 @@ impl Run<'_> {
             return self.pay(None, None).await;
         }
         self.fund_and_take().await
+    }
+
+    /// Converts the wallet's native USDC into the transfer's pUSD, waiting for it within the
+    /// arrival timeout.
+    async fn convert(&mut self) -> Step<()> {
+        let (Some(sender), Some(terms)) = (self.sender, self.request.conversion.as_ref()) else {
+            return Err(Error::TransactionSenderRequired.into());
+        };
+        tracing::info!("converting");
+        let deadline = Instant::now() + self.request.arrival_timeout;
+        loop {
+            match conversion::convert(self.session, &self.intent, terms, sender).await? {
+                Progress::Ready => break,
+                Progress::NotSent => return Err(Halt::Pending(PendingReason::ConversionNotSent)),
+                Progress::Waiting => {}
+            }
+            if Instant::now() >= deadline {
+                return Err(Halt::Pending(PendingReason::ConversionUnconfirmed));
+            }
+            tokio::time::sleep(self.request.poll_interval).await;
+            self.read_intent(false).await?;
+        }
+        self.read_intent(true).await?;
+        Ok(())
     }
 
     /// Funds the take from the venue (a withdrawal) or checks the wallet's funds, waits for
@@ -1012,7 +1126,9 @@ impl Run<'_> {
     async fn replace(&mut self, client_id: &str, funded: bool) -> Result<()> {
         let client_id =
             ClientId::new(client_id).map_err(|_| differs(details::CLIENT_REQUEST_ID))?;
-        let intent = post(self.session, self.request, &self.pointer, &client_id, funded).await?;
+        let conversion = self.intent.conversion.as_ref().and_then(|conversion| conversion.id);
+        let intent =
+            post(self.session, self.request, &self.pointer, &client_id, funded, conversion).await?;
         tracing::info!(transfer = %intent.id, "replaced");
         self.intent = intent;
         self.check_intent()
@@ -1025,7 +1141,7 @@ impl Run<'_> {
     }
 
     /// The transfer must be the request's, not cancelled: each term the request states, and
-    /// none it does not (a route, a conversion, trade.xyz).
+    /// none it does not (a route, trade.xyz); its conversion the request's, the same one.
     fn check_intent(&self) -> Result<()> {
         let (intent, terms) = (&self.intent, self.terms());
         let chain = |venue| deployments::chain(venue).map(|chain| chain.id);
@@ -1051,7 +1167,11 @@ impl Run<'_> {
             ),
             (
                 intent.funding.as_ref().unwrap_or(&Funding::Venue) == &funding
-                    && intent.conversion.is_none(),
+                    && conversion::check_conversion(intent, self.request.conversion.as_ref())
+                        .is_ok()
+                    && self.conversion.is_none_or(|id| {
+                        intent.conversion.as_ref().and_then(|conversion| conversion.id) == Some(id)
+                    }),
                 details::FUNDING,
             ),
             (intent.from_dex.is_none(), details::SOURCE_DEX),

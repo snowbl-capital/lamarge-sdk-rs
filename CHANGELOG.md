@@ -8,6 +8,7 @@ All notable changes to this crate are documented here. The format is based on [K
 
 - `ClientBuilder::http_exchange`: every request to the API goes through the host's `HttpExchange` (an `HttpRequest` in, an `HttpAnswer` out), under the SDK's deadline, retry policy, answer cap and error decoding.
 - `ClientBuilder::stream_connector`: the event WebSocket's connection is opened by the host's `StreamConnector`; the SDK runs TLS and the WebSocket over it.
+- Polygon wallet conversion: `TransferRequest::conversion(ConversionTerms)` funds a wallet-funded transfer from Polymarket with native USDC converted into pUSD first, run by `Session::transfer_with` and the caller's `TransactionSender` (an `approve` when the allowance is short, then the convert call). Each `Transaction` carries a stable `id`, is journalled before it is asked and with its hash, and is never asked again while its outcome is unknown (`TransactionSender::status`); `SendError::NotSent` and `Unknown` end the run `PendingReason::ConversionNotSent` or `ConversionUnconfirmed`. `Session::transfer` refuses such a request with `Error::TransactionSenderRequired`. `ConversionTerms::covering` gives the most native USDC whose floor is the transfer's amount; `Session::conversion_preview` tells the transactions before any is asked.
 
 ## [0.1.0] - 2026-11-15
 

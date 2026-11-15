@@ -167,6 +167,17 @@ ops! {
     SUBMIT_TRANSFER_WITHDRAWAL =
         Op::post("submitTransferWithdrawal", "/v1/transfers/{id}/withdrawal", Session)
             .retried();
+    PREPARE_TRANSFER_CONVERSION = Op::post(
+        "prepareTransferConversion",
+        "/v1/transfers/{id}/conversion/prepare",
+        Session,
+    )
+    .retried();
+    /// The empty body fences exclusively: a replay would answer the first fence's success as
+    /// another client's.
+    FENCE_TRANSFER_CONVERSION =
+        Op::post("reportTransferConversion", "/v1/transfers/{id}/conversion", Session);
+    REPORT_TRANSFER_CONVERSION = FENCE_TRANSFER_CONVERSION.retried();
     GET_TAKE = Op::get("getV1TakesId", "/v1/takes/{id}", Session).secret();
     DELETE_TAKE = Op::delete("deleteTake", "/v1/takes/{id}", Session);
     GET_TAKE_HISTORY = Op::get("getTakeHistory", "/v1/takes/history", Session).secret();
@@ -258,8 +269,6 @@ pub(crate) const DEFERRED: &[(&str, &str)] = &[
     ("getDirectOperation", "direct transfers send transactions: web-led"),
     ("reportDirectOperation", "direct transfers send transactions: web-led"),
     ("getDirectFunding", "direct transfers send transactions: web-led"),
-    ("prepareTransferConversion", "Polygon native-USDC conversion sends transactions"),
-    ("reportTransferConversion", "Polygon native-USDC conversion sends transactions"),
     ("prepareGroupedRoute", "routes and grouped routes: 0.3"),
     ("abortGroupedRoute", "routes and grouped routes: 0.3"),
     ("commitGroupedRoute", "routes and grouped routes: 0.3"),

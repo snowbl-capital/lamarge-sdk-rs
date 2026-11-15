@@ -382,10 +382,10 @@ const UNMODELLED: &[(&str, &str)] = &[
     ("AsterEnvelope", "Aster margin moves: active market making, 0.2"),
     (
         "TransferInput",
-        "request body the transfer flow writes from its request; `conversion`, `then`, \
+        "request body the transfer flow writes from its request; `then`, \
          `previous_transfer_id` and `from_dex` are deferred",
     ),
-    ("WalletConversionInput", "Polygon native-USDC conversion sends transactions: deferred"),
+    ("WalletConversionInput", "request body the transfer flow writes from `ConversionTerms`"),
     ("PendingTradeList", "list envelope: `Explorer::pending_trades` returns its `data`"),
 ];
 

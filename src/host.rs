@@ -1,5 +1,6 @@
-//! Transports a host supplies in place of the client's own: every request to the API through
-//! [`HttpExchange`], the event WebSocket's connection through [`StreamConnector`].
+//! What a host supplies in place of the client's own: every request to the API through
+//! [`HttpExchange`], the event WebSocket's connection through [`StreamConnector`], and the
+//! transactions a flow sends through [`TransactionSender`].
 
 use std::{fmt, future::Future, pin::Pin, sync::Arc};
 
@@ -188,3 +189,86 @@ impl<T: StreamConnector + ?Sized> StreamConnector for Arc<T> {
 /// The future [`StreamConnector::connect`] returns.
 pub type StreamFuture<'a> =
     Pin<Box<dyn Future<Output = Result<Box<dyn HostStream>, HostError>> + Send + 'a>>;
+
+/// A transaction the SDK asks the host to send from the session's address.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub struct Transaction {
+    /// Stable across runs and replacement transfers: the same `id` is the same transaction.
+    /// Key the host's own record on it, so [`TransactionSender::status`] can answer for it.
+    pub id: String,
+    /// The chain.
+    pub chain_id: u64,
+    /// The contract called.
+    pub to: alloy_primitives::Address,
+    /// The calldata.
+    pub data: Vec<u8>,
+    /// The native value sent; zero for every transaction the SDK asks today.
+    pub value: alloy_primitives::U256,
+}
+
+/// Why a [`TransactionSender`] did not return a hash.
+#[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
+pub enum SendError {
+    /// Nothing was broadcast, and nothing will be: the owner declined, the signature request
+    /// timed out, the address lacks gas. The SDK may ask for the same transaction again.
+    #[error("transaction not sent")]
+    NotSent(#[source] HostError),
+    /// It may have been broadcast. The SDK never asks for it again until
+    /// [`TransactionSender::status`] says otherwise.
+    #[error("transaction outcome unknown")]
+    Unknown(#[source] HostError),
+}
+
+/// What the host knows of a transaction it was asked for.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum SendStatus {
+    /// Broadcast, with this hash.
+    Sent(alloy_primitives::B256),
+    /// Never broadcast, and never will be under this request: it may be asked again.
+    NotSent,
+    /// Not known: the SDK waits and never asks again.
+    Unknown,
+}
+
+/// Sends the transactions a flow needs from the session's address, which pays their gas: today
+/// the Polygon native-USDC conversion of a wallet-funded transfer (an `approve`, then the
+/// convert call). Passed to [`Session::transfer_with`](crate::Session::transfer_with).
+///
+/// The host owns gas, fees, nonces and signing; the SDK sets none. It journals each request
+/// before asking and each hash once returned, so a run that restarts never asks for a
+/// transaction it may have sent: it asks [`Self::status`] instead.
+pub trait TransactionSender: Send + Sync {
+    /// Sends `transaction` and returns its hash once broadcast, without waiting for its receipt:
+    /// the SDK follows the outcome on LaMarge. Waiting for the owner's signature may take long;
+    /// the SDK sets no deadline on it.
+    fn send(&self, transaction: Transaction) -> SendFuture<'_>;
+
+    /// What became of transaction `id`, asked earlier with no answer recorded (the run stopped
+    /// meanwhile). By default [`SendStatus::Unknown`].
+    fn status<'a>(&'a self, id: &'a str) -> StatusFuture<'a> {
+        let _ = id;
+        Box::pin(async { Ok(SendStatus::Unknown) })
+    }
+}
+
+/// One sender shared by several runs.
+impl<T: TransactionSender + ?Sized> TransactionSender for Arc<T> {
+    fn send(&self, transaction: Transaction) -> SendFuture<'_> {
+        (**self).send(transaction)
+    }
+
+    fn status<'a>(&'a self, id: &'a str) -> StatusFuture<'a> {
+        (**self).status(id)
+    }
+}
+
+/// The future [`TransactionSender::send`] returns.
+pub type SendFuture<'a> =
+    Pin<Box<dyn Future<Output = Result<alloy_primitives::B256, SendError>> + Send + 'a>>;
+
+/// The future [`TransactionSender::status`] returns; an `Err` is read as [`SendStatus::Unknown`].
+pub type StatusFuture<'a> =
+    Pin<Box<dyn Future<Output = Result<SendStatus, HostError>> + Send + 'a>>;
