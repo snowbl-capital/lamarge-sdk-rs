@@ -381,7 +381,8 @@ impl TransportError {
         Self(TransportKind::Timeout)
     }
 
-    /// A failure of a request the caller sent for the SDK ([`crate::LighterReads`]).
+    /// A failure of a request or connection the caller made for the SDK ([`crate::LighterReads`],
+    /// [`crate::HttpExchange`], [`crate::StreamConnector`]).
     pub(crate) fn caller(error: Box<dyn std::error::Error + Send + Sync>) -> Self {
         Self(TransportKind::Caller(error))
     }

@@ -19,7 +19,7 @@ use super::{
     ops::{AuthTier, Method, Op},
     *,
 };
-use crate::{Client, Environment, RetryPolicy, error::ErrorCode};
+use crate::{Client, Environment, HttpAnswer, RetryPolicy, error::ErrorCode};
 
 const GET: Op = Op {
     id: "getThing",
@@ -671,4 +671,129 @@ fn request_futures_are_send() {
     let token = Token::default();
     check(client.inner().send::<Value>(Call::new(&GET).segment(1), Some(&bearer(token.clone()))));
     check(client.inner().lighter_get::<Value>("/api/v1/account"));
+}
+
+/// A host exchange that records each request and answers from a script, then 200 `{}`.
+#[derive(Clone, Default)]
+struct Recorder {
+    sent: Arc<Mutex<Vec<HttpRequest>>>,
+    script: Arc<Mutex<Vec<std::result::Result<HttpAnswer, &'static str>>>>,
+}
+
+impl Recorder {
+    fn answering(script: Vec<std::result::Result<HttpAnswer, &'static str>>) -> Self {
+        Self { sent: Arc::default(), script: Arc::new(Mutex::new(script)) }
+    }
+
+    fn sent(&self) -> Vec<HttpRequest> {
+        std::mem::take(&mut *self.sent.lock().unwrap())
+    }
+}
+
+impl HttpExchange for Recorder {
+    fn send(&self, request: HttpRequest) -> crate::HttpExchangeFuture<'_> {
+        self.sent.lock().unwrap().push(request);
+        let next = {
+            let mut script = self.script.lock().unwrap();
+            if script.is_empty() {
+                Ok(HttpAnswer::new(200, b"{}".to_vec()))
+            } else {
+                script.remove(0)
+            }
+        };
+        Box::pin(async move { next.map_err(Into::into) })
+    }
+}
+
+/// A client whose API requests all go through `exchange`; its host does not resolve.
+fn hosted(exchange: impl HttpExchange + 'static, retry: RetryPolicy) -> Client {
+    let api_url = "https://api.lamarge.invalid/base".to_owned();
+    let app_origin = "https://app.lamarge.invalid".to_owned();
+    Client::builder(Environment::Custom { api_url, app_origin })
+        .retry(retry)
+        .user_agent_suffix("bot/1.2")
+        .http_exchange(exchange)
+        .build()
+        .unwrap()
+}
+
+#[tokio::test]
+async fn a_host_exchange_carries_every_request_with_its_headers_and_body() {
+    let recorder = Recorder::default();
+    let client = hosted(recorder.clone(), RetryPolicy::none());
+    let call = Call::new(&POST_ONCE).query("a", "x y&z").json(&json!({"k": 1})).unwrap();
+    let _: Value = client.inner().send(call, Some(&bearer(Token::default()))).await.unwrap();
+
+    let [request] = recorder.sent().try_into().unwrap();
+    assert_eq!(request.method, "POST");
+    assert_eq!(request.url, "https://api.lamarge.invalid/base/v1/things?a=x+y%26z");
+    assert_eq!(request.body.as_deref(), Some(br#"{"k":1}"#.as_slice()));
+    let header = |name| {
+        request.headers.iter().find(|(candidate, _)| *candidate == name).map(|(_, v)| v.as_str())
+    };
+    assert_eq!(header("accept"), Some("application/json"));
+    assert_eq!(header("content-type"), Some("application/json"));
+    assert_eq!(header("authorization"), Some("Bearer token-1"));
+    assert!(header("user-agent").is_some_and(|agent| agent.ends_with(" bot/1.2")));
+    assert!(!format!("{request:?}").contains("token-1"), "the bearer is redacted");
+}
+
+#[tokio::test]
+async fn a_host_exchange_keeps_the_retry_policy_and_error_decoding() {
+    let busy = HttpAnswer::new(503, envelope("UNAVAILABLE", true).to_string())
+        .header("Retry-After", "0")
+        .header("X-Request-Id", "req-1");
+    let recorder = Recorder::answering(vec![Err("connection reset"), Ok(busy)]);
+    let client = hosted(recorder.clone(), fast());
+    let _: Value = client.inner().send(Call::new(&GET).segment("a"), None).await.unwrap();
+    assert_eq!(recorder.sent().len(), 3, "a lost answer and a 503 are retried");
+
+    let refused = HttpAnswer::new(404, envelope("NOT_FOUND", false).to_string())
+        .header("x-request-id", "req-2");
+    let recorder = Recorder::answering(vec![Ok(refused)]);
+    let error = hosted(recorder.clone(), fast())
+        .inner()
+        .send::<Value>(Call::new(&GET).segment("a"), None)
+        .await
+        .unwrap_err();
+    let Error::Api(api) = &error else { panic!("expected an API error, got {error:?}") };
+    assert_eq!(api.request_id(), Some("req-env"));
+    assert_eq!(recorder.sent().len(), 1, "a refusal is not retried");
+
+    let recorder = Recorder::answering(vec![Err("down")]);
+    let error = hosted(recorder.clone(), fast())
+        .inner()
+        .send::<Value>(Call::new(&POST_ONCE), None)
+        .await
+        .unwrap_err();
+    assert!(matches!(error, Error::Transport(_)), "{error:?}");
+    assert_eq!(recorder.sent().len(), 1, "an operation that is not retryable is sent once");
+
+    let oversized = HttpAnswer::new(200, vec![b' '; MAX_ANSWER_BYTES + 1]);
+    let error = hosted(Recorder::answering(vec![Ok(oversized)]), RetryPolicy::none())
+        .inner()
+        .send::<Value>(Call::new(&GET).segment("a"), None)
+        .await
+        .unwrap_err();
+    assert!(matches!(error, Error::Decode(_)), "{error:?}");
+}
+
+#[tokio::test(start_paused = true)]
+async fn a_host_exchange_answers_within_the_attempt_deadline() {
+    struct Silent;
+    impl HttpExchange for Silent {
+        fn send(&self, _: HttpRequest) -> crate::HttpExchangeFuture<'_> {
+            Box::pin(std::future::pending())
+        }
+    }
+    let api = "https://api.lamarge.invalid".to_owned();
+    let client = Client::builder(Environment::Custom { api_url: api.clone(), app_origin: api })
+        .retry(RetryPolicy::none())
+        .timeout(Duration::from_secs(2))
+        .http_exchange(Silent)
+        .build()
+        .unwrap();
+    let error = client.inner().send::<Value>(Call::new(&GET).segment("a"), None).await.unwrap_err();
+    let Error::Transport(transport) = &error else { panic!("expected a timeout, got {error:?}") };
+    assert!(transport.is_timeout());
 }

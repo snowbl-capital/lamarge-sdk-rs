@@ -2,6 +2,13 @@
 
 All notable changes to this crate are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the crate follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): before 1.0, a minor version may break.
 
+## [Unreleased]
+
+### Added
+
+- `ClientBuilder::http_exchange`: every request to the API goes through the host's `HttpExchange` (an `HttpRequest` in, an `HttpAnswer` out), under the SDK's deadline, retry policy, answer cap and error decoding.
+- `ClientBuilder::stream_connector`: the event WebSocket's connection is opened by the host's `StreamConnector`; the SDK runs TLS and the WebSocket over it.
+
 ## [0.1.0] - 2026-11-15
 
 ### Added
