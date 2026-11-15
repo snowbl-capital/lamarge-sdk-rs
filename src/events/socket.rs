@@ -58,19 +58,18 @@ fn endpoint(api: &str) -> Result<Endpoint> {
 pub(super) async fn connect(inner: &Inner, subscription: String) -> Result<Socket> {
     let endpoint = endpoint(&inner.api)?;
     let websocket = |error| Error::Transport(TransportError::websocket(error));
-    let tcp: Box<dyn HostStream> = match &inner.stream_connector {
-        Some(connector) => connector
+    let tcp: Box<dyn HostStream> = if let Some(connector) = &inner.stream_connector {
+        connector
             .connect(&endpoint.host, endpoint.port)
             .await
-            .map_err(|error| Error::Transport(TransportError::caller(error)))?,
-        None => {
-            let tcp = TcpStream::connect((endpoint.host.as_str(), endpoint.port))
-                .await
-                .map_err(|error| websocket(tungstenite::Error::Io(error)))?;
-            // Frames are small and latency matters more than packet count.
-            let _ = tcp.set_nodelay(true);
-            Box::new(tcp)
-        }
+            .map_err(|error| Error::Transport(TransportError::caller(error)))?
+    } else {
+        let tcp = TcpStream::connect((endpoint.host.as_str(), endpoint.port))
+            .await
+            .map_err(|error| websocket(tungstenite::Error::Io(error)))?;
+        // Frames are small and latency matters more than packet count.
+        let _ = tcp.set_nodelay(true);
+        Box::new(tcp)
     };
     let io: Box<dyn HostStream> = if endpoint.tls {
         let name = ServerName::try_from(endpoint.host.clone()).map_err(|_| {
@@ -115,6 +114,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[expect(
+        clippy::result_large_err,
+        reason = "tungstenite's handshake callback returns its response"
+    )]
     async fn a_host_connector_carries_the_event_websocket() {
         let (ours, theirs) = tokio::io::duplex(1 << 16);
         let pipe = std::sync::Arc::new(Pipe(Some(ours).into(), Vec::new().into()));
