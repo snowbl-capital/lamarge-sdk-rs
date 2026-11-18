@@ -2,6 +2,16 @@
 
 All notable changes to this crate are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the crate follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html): before 1.0, a minor version may break.
 
+## [Unreleased]
+
+## [0.3.0] - 2026-11-18
+
+### Added
+
+- Moves run to their end, as the TypeScript SDK's `moveFunds`: `Session::move_funds` / `move_funds_with(&MoveFundsRequest, sender)` plan the move once (`Session::move_plan`, journalled under its `client_move_id`), run LaMarge's part first (one take, or a route through a venue between keeping the move's floor), then bridge the rest through Relay, every part attached to the move and counted against its `amount_in` in the journal. A Polymarket origin withdraws the rest to the payer's wallet first, a GMX origin by the payer's own `transferOut`; a LaMarge part that ends unpaid frees its share, what its withdrawal moved being bridged from the wallet. A `HyperCore` bridge's signatures are journalled one by one; a wallet bridge's `approve` and deposit go through the host's `TransactionSender`, the deposit fenced first and never asked again while its outcome is unknown. What no part carries is closed as unallocated with its reason. `MoveOutcome::Closed` or `Pending` with a `MoveWait`.
+- `WithdrawalRequest::move_id`: a withdrawal to the signer feeding a move's bridge.
+- GMX margin, as the TypeScript SDK: a transfer from GMX's venue account is funded by the payer's own `transferOut` on GMX's `MultichainTransferRouter`, rebuilt from the amount alone and sent through `Session::transfer_with`'s sender (`Session::transfer` refuses it with `Error::TransactionSenderRequired`), journalled before it is asked and never asked again once sent (`PendingReason::TransferOutNotSent` when the sender sent nothing). `Session::directs` (`create`, `get`, `funding`, `fence`, `report_transaction`) and `DirectRequest::gmx_withdrawal` record the same withdrawal as a direct operation, which a move from GMX runs: checked against the pinned GMX deployment, fenced before the sender is asked, sent once.
+
 ## [0.2.0] - 2026-11-15
 
 ### Added
@@ -32,5 +42,7 @@ All notable changes to this crate are documented here. The format is based on [K
 - Features `aws-lc-rs` (default) and `ring` select the rustls provider.
 - `ClientBuilder::lighter_reads`: the SDK's reads of Lighter's public API go through the caller's `LighterReads`, from its address and within its rate budget.
 
+[Unreleased]: https://github.com/snowbl-capital/lamarge-sdk-rs/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.3.0
 [0.2.0]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.2.0
 [0.1.0]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.1.0

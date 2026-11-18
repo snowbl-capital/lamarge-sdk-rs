@@ -114,6 +114,8 @@ Rust 1.94.1. It is raised only in a minor release, noted in the [changelog](http
 - API: [docs.rs/lamarge](https://docs.rs/lamarge)
 - Guide: [docs.lamarge.trade/rust-sdk](https://docs.lamarge.trade/rust-sdk)
 
+The crate is developed in LaMarge's repository, next to the server and the API contract. [snowbl-capital/lamarge-sdk-rs](https://github.com/snowbl-capital/lamarge-sdk-rs) mirrors each release; issues are welcome there. The TypeScript client is [`@lamarge/sdk`](https://www.npmjs.com/package/@lamarge/sdk) ([snowbl-capital/lamarge-sdk-ts](https://github.com/snowbl-capital/lamarge-sdk-ts)).
+
 ## Licence
 
 Licensed under either of [Apache License, Version 2.0](https://github.com/snowbl-capital/lamarge-sdk-rs/blob/main/LICENSE-APACHE) or [MIT license](https://github.com/snowbl-capital/lamarge-sdk-rs/blob/main/LICENSE-MIT) at your option.

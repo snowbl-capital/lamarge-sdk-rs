@@ -451,6 +451,7 @@ pub(crate) fn venues(environment: EscrowEnvironment) -> Value {
                 "decimals": chain.decimals,
                 "permit": chain.permit.map(|p| json!({"name": p.name, "version": p.version})),
                 "wallet_funding": wallet_funding,
+                "direct_withdrawal": (*venue == VenueId::Gmx).then_some(true),
             },
             "margin_move": null, "release_minimum": "5000000",
         })

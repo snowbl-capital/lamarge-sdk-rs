@@ -5,6 +5,7 @@ pub(crate) mod aster;
 pub(crate) mod checks;
 pub(crate) mod eip712;
 pub(crate) mod fees;
+pub(crate) mod gmx;
 pub(crate) mod hyperliquid;
 pub(crate) mod lighter;
 pub(crate) mod polymarket;

@@ -268,15 +268,19 @@ ops! {
     FENCE_BRIDGE =
         Op::post("reportBridgeTransaction", "/v1/bridges/{id}/transactions", Session);
     REPORT_BRIDGE_TRANSACTION = FENCE_BRIDGE.retried();
+
+    // Direct operations: a GMX withdrawal its owner sends itself. Idempotent by
+    // `client_operation_id`, reports by content; the empty report fences, never retried.
+    CREATE_DIRECT = Op::post("createDirectOperation", "/v1/direct", Session).retried();
+    GET_DIRECT = Op::get("getDirectOperation", "/v1/direct/{id}", Session);
+    GET_DIRECT_FUNDING = Op::get("getDirectFunding", "/v1/direct/{id}/funding", Session);
+    FENCE_DIRECT = Op::post("reportDirectOperation", "/v1/direct/{id}", Session);
+    REPORT_DIRECT = FENCE_DIRECT.retried();
 }
 
 /// Operations out of 0.1's scope, with the reason.
 #[cfg(test)]
 pub(crate) const DEFERRED: &[(&str, &str)] = &[
-    ("createDirectOperation", "direct transfers send transactions: web-led"),
-    ("getDirectOperation", "direct transfers send transactions: web-led"),
-    ("reportDirectOperation", "direct transfers send transactions: web-led"),
-    ("getDirectFunding", "direct transfers send transactions: web-led"),
     ("preparePaymentRefund", "refunds are an active market making obligation: 0.2"),
     ("submitPaymentRefund", "refunds are an active market making obligation: 0.2"),
     ("postEscrowWithdrawPrepare", "escrow available-balance withdrawal: web-only today"),

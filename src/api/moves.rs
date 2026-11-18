@@ -84,7 +84,7 @@ impl MoveQuery {
 /// Persist it before the first call: the same `client_move_id` and terms return the move.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MoveRequest {
-    client_move_id: ClientId,
+    pub(crate) client_move_id: ClientId,
     pub(crate) from: MoveEndpoint,
     pub(crate) to: MoveEndpoint,
     pub(crate) amount_in: Amount,
@@ -92,7 +92,7 @@ pub struct MoveRequest {
     pub(crate) payer: Address,
     pub(crate) recipient: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    max_fee_bps: Option<Bps>,
+    pub(crate) max_fee_bps: Option<Bps>,
 }
 
 impl MoveRequest {

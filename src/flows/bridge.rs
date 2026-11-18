@@ -24,12 +24,12 @@ use crate::{
 /// match exactly.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BridgeTerms {
-    from: MoveEndpoint,
-    to: MoveEndpoint,
-    payer: Address,
-    recipient: MoveRecipient,
-    amount_in: Amount,
-    min_out: Amount,
+    pub(super) from: MoveEndpoint,
+    pub(super) to: MoveEndpoint,
+    pub(super) payer: Address,
+    pub(super) recipient: MoveRecipient,
+    pub(super) amount_in: Amount,
+    pub(super) min_out: Amount,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     account_credit: Option<Amount>,
 }
@@ -75,7 +75,7 @@ impl BridgeTerms {
         self
     }
 
-    fn expectation(&self) -> Expectation<'_> {
+    pub(super) fn expectation(&self) -> Expectation<'_> {
         Expectation {
             from: &self.from,
             to: &self.to,

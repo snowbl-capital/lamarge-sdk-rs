@@ -363,3 +363,74 @@ pub struct BridgeRefund {
     /// In the token's base units.
     pub amount: Amount,
 }
+
+open_enum! {
+    /// What a direct operation does.
+    pub enum DirectKind {
+        /// From the owner's wallet into its venue account.
+        Deposit = "deposit",
+        /// From the owner's GMX Account to its own address.
+        Withdrawal = "withdrawal",
+    }
+}
+
+open_enum! {
+    /// A direct operation's lifecycle.
+    pub enum DirectState {
+        /// Recorded, nothing sent.
+        Prepared = "prepared",
+        /// Fenced or sent, not confirmed yet.
+        Pending = "pending",
+        /// Its transaction confirmed: `received` arrived.
+        Confirmed = "confirmed",
+        /// Its transaction reverted.
+        Failed = "failed",
+        /// Nothing confirmed by its deadline.
+        Expired = "expired",
+    }
+}
+
+/// An operation its owner sends itself, recorded and followed by LaMarge.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
+pub struct DirectOperation {
+    /// The move it feeds a bridge for.
+    #[serde(deserialize_with = "super::required")]
+    pub move_id: Option<MoveId>,
+    /// The operation.
+    pub id: Uuid,
+    /// The caller's id.
+    pub client_operation_id: ClientId,
+    /// The venue.
+    pub venue: VenueId,
+    /// What it does.
+    pub kind: DirectKind,
+    /// The chain it is sent on.
+    pub chain_id: u64,
+    /// The venue's escrow there.
+    pub escrow: Address,
+    /// Who sends it.
+    pub owner: Address,
+    /// Who receives.
+    pub recipient: Address,
+    /// The token moved.
+    pub token: Address,
+    /// In the token's base units.
+    pub amount: Amount,
+    /// The least received.
+    pub min_out: Amount,
+    /// Its nonce.
+    pub nonce: Amount,
+    /// Unix seconds.
+    pub deadline: Amount,
+    /// Its lifecycle.
+    pub state: DirectState,
+    /// Transaction hashes reported for it.
+    pub attempts: Vec<String>,
+    /// The confirmed transaction.
+    #[serde(deserialize_with = "super::required")]
+    pub tx_hash: Option<B256>,
+    /// What it delivered, once confirmed.
+    #[serde(deserialize_with = "super::required")]
+    pub received: Option<Amount>,
+}

@@ -15,6 +15,9 @@ ignore = [
     { id = "RUSTSEC-2026-0387", reason = "no key in this crate; alloy still requires k256 0.13" },
     # paste (through alloy-primitives) is unmaintained; a compile-time macro with no runtime code.
     { id = "RUSTSEC-2024-0436", reason = "unmaintained compile-time macro of alloy-primitives" },
+    # chrono is unmaintained, with no known vulnerability. Its `DateTime<Utc>` is in the crate's
+    # public models: moving to jiff or time is a breaking release of its own.
+    { id = "RUSTSEC-2026-0543", reason = "unmaintained; chrono types are public, a breaking change to replace" },
 ]
 
 [licenses]

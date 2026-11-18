@@ -1,0 +1,11 @@
+{
+  "move_id": "0192f1c2-3d4e-7f00-8a1b-2c3d4e5f6a60",
+  "client_operation_id": "move-1.g",
+  "venue": "gmx",
+  "kind": "withdrawal",
+  "owner": "0x000000000000000000000000000000000000dead",
+  "recipient": "0x000000000000000000000000000000000000dead",
+  "token": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+  "amount": "100000000",
+  "min_out": "100000000"
+}

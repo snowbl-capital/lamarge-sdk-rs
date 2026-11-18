@@ -252,7 +252,9 @@ fn taker_cases() -> Vec<Case> {
         Bridge: ["Bridge"] "move/bridges/0",
         BridgeOrder: ["Bridge.order"] "move/bridges/0/order",
         BridgeRefund: ["Bridge.refund"] "move/bridges/0/refund",
+        DirectOperation: ["DirectOperation"] "direct_operation",
         // Request bodies.
+        crate::api::DirectRequest: ["DirectRequest"] "direct_request",
         crate::flows::TakeInput: ["TakeInput"] "take_input",
         crate::api::MoveRequest: ["MoveRequest"] "move_request",
         crate::api::BridgeRequest: ["BridgeRequest"] "bridge_request",
@@ -357,6 +359,9 @@ fn enums() -> Vec<EnumCase> {
         enum_case::<BridgeProvider>("Bridge.provider"),
         enum_case::<MoveState>("Move.state"),
         enum_case::<BridgeState>("Bridge.state"),
+        enum_case::<DirectKind>("DirectRequest.kind"),
+        enum_case::<crate::types::VenueId>("DirectRequest.venue"),
+        enum_case::<DirectState>("DirectOperation.state"),
     ]
 }
 
@@ -768,18 +773,21 @@ fn reachable_object_schemas_are_registered() {
 /// its fixture sets each and decodes without ignored fields, and no required key may be missing.
 #[test]
 fn inline_answers_match_their_models() {
-    let answer = &spec()["paths"]["/v1/bridges/{id}/funding"]["get"]["responses"]["200"];
-    let object = object(&answer["content"]["application/json"]["schema"]);
-    let spec_fields: BTreeSet<&str> = object.properties.keys().map(String::as_str).collect();
-    let rust: BTreeSet<&str> = fields::<BridgeFunding>().into_iter().collect();
-    assert_eq!(rust, spec_fields);
-    let fixture = fixture("bridge_funding");
-    assert_eq!(decode::<BridgeFunding>(fixture.clone()), Ok(Vec::new()));
-    assert_eq!(fixture.as_object().unwrap().len(), spec_fields.len());
-    for key in &object.required {
-        let mut without = fixture.clone();
-        without.as_object_mut().unwrap().remove(key);
-        assert!(decode::<BridgeFunding>(without).is_err(), "{key}");
+    // A bridge's and a direct operation's funds share one shape, read as `BridgeFunding`.
+    for path in ["/v1/bridges/{id}/funding", "/v1/direct/{id}/funding"] {
+        let answer = &spec()["paths"][path]["get"]["responses"]["200"];
+        let object = object(&answer["content"]["application/json"]["schema"]);
+        let spec_fields: BTreeSet<&str> = object.properties.keys().map(String::as_str).collect();
+        let rust: BTreeSet<&str> = fields::<BridgeFunding>().into_iter().collect();
+        assert_eq!(rust, spec_fields, "{path}");
+        let fixture = fixture("bridge_funding");
+        assert_eq!(decode::<BridgeFunding>(fixture.clone()), Ok(Vec::new()));
+        assert_eq!(fixture.as_object().unwrap().len(), spec_fields.len());
+        for key in &object.required {
+            let mut without = fixture.clone();
+            without.as_object_mut().unwrap().remove(key);
+            assert!(decode::<BridgeFunding>(without).is_err(), "{key}");
+        }
     }
 }
 

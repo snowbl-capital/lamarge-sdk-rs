@@ -20,7 +20,7 @@ use crate::{
         signing::Verified,
     },
     transport::{Call, ops},
-    types::{Amount, ClientId, EscrowEnvironment, SignatureBytes, VenueId},
+    types::{Amount, ClientId, EscrowEnvironment, MoveId, SignatureBytes, VenueId},
 };
 
 /// Where a withdrawal goes.
@@ -50,13 +50,23 @@ pub struct WithdrawalRequest {
     venue: VenueId,
     amount: Amount,
     to: WithdrawTo,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    move_id: Option<MoveId>,
 }
 
 impl WithdrawalRequest {
     /// A withdrawal named `id` of `amount` (in `venue`'s base units) to `to`. The same id
     /// finds this withdrawal again, never a second one.
     pub fn new(id: ClientId, venue: VenueId, amount: Amount, to: WithdrawTo) -> Self {
-        Self { id, venue, amount, to }
+        Self { id, venue, amount, to, move_id: None }
+    }
+
+    /// Attaches a withdrawal to the signer to move `id`, from the move's origin account by its
+    /// payer: what it moves feeds the move's bridge. An exact retry keeps the first move.
+    #[must_use]
+    pub fn move_id(mut self, id: MoveId) -> Self {
+        self.move_id = Some(id);
+        self
     }
 }
 
@@ -68,6 +78,8 @@ struct Context {
     amount: Amount,
     to: WithdrawTo,
     signer: Address,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    move_id: Option<MoveId>,
 }
 
 /// A withdrawal's signature, saved before it is first submitted (`{ns}withdrawal:{id}`), then its
@@ -104,6 +116,8 @@ struct SubmitBody<'a> {
     venue: &'a VenueId,
     typed_data: &'a Value,
     signature: SignatureBytes,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    move_id: Option<MoveId>,
 }
 
 impl Session {
@@ -178,6 +192,9 @@ fn validate(session: &Session, request: &WithdrawalRequest) -> Result<()> {
     if request.to == WithdrawTo::Account(session.address()) {
         return Err(Error::InvalidRequest("a send goes to another account".into()));
     }
+    if request.move_id.is_some() && request.to != WithdrawTo::Signer {
+        return Err(Error::InvalidRequest("a move's withdrawal goes to the signer".into()));
+    }
     if request.amount == Amount::ZERO {
         return Err(Error::InvalidRequest("amount must be positive".into()));
     }
@@ -198,6 +215,7 @@ async fn run(session: &Session, request: &WithdrawalRequest) -> Result<Withdrawa
         amount: request.amount,
         to: request.to,
         signer,
+        move_id: request.move_id,
     };
     let stored = records::load::<WithdrawalRecord>(journal, &key).await?;
     if let Some(record) = &stored {
@@ -287,6 +305,7 @@ async fn submit(
         venue: &request.venue,
         typed_data: &record.typed_data,
         signature: record.signature,
+        move_id: request.move_id,
     };
     let call = Call::new(&ops::SUBMIT_WITHDRAWAL).json(&body)?;
     match session.transport().send::<Withdrawal>(call, session.auth()).await {

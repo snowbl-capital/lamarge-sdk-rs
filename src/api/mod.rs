@@ -5,6 +5,7 @@
 mod account;
 mod bridges;
 mod credentials;
+mod direct;
 mod events;
 mod explorer;
 mod fills;
@@ -20,6 +21,7 @@ use std::{fmt, sync::Arc};
 
 pub use bridges::{BridgeRequest, WalletSource};
 pub use credentials::CredentialRequest;
+pub use direct::DirectRequest;
 pub use moves::{MoveQuery, MoveRecipient, MoveRequest};
 pub use transfers::RouteQuery;
 
@@ -79,6 +81,8 @@ handle! {
     Moves;
     /// The session's external bridges.
     Bridges;
+    /// The session's direct operations: GMX withdrawals its owner sends itself.
+    Directs;
     /// The session's maker credentials.
     Credentials;
 }

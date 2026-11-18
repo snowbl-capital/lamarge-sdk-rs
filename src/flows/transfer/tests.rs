@@ -87,6 +87,8 @@ struct Options {
     /// What goes wrong on a route, in turn: `cancel`, `withdrawal`, `replacement`, `take`,
     /// `take-cancel`, `submission`.
     faults: Vec<(&'static str, Fault)>,
+    /// A transfer created for a move is named and attached as asked.
+    echoes_move: bool,
 }
 
 /// A route's failure.
@@ -265,7 +267,12 @@ impl State {
             requests.push(request("permit"));
         }
         if self.o.withdrawal_amount.is_some() {
-            requests.push(request("margin_move"));
+            // From GMX the withdrawal is the payer's own `transfer_out`.
+            requests.push(request(if self.from() == "gmx" {
+                "transfer_out"
+            } else {
+                "margin_move"
+            }));
         }
         requests.push(request("pay_take"));
         json!({
@@ -438,6 +445,22 @@ impl State {
             if let Some(spent) = self.o.spent {
                 out["funding_plan"]["withdrawal_amount"] = json!(spent);
             }
+            // GMX's `transferOut` reaches the wallet once the live reads show the amount.
+            let landed = self.from() == "gmx" && !self.o.live.is_empty() && {
+                let read = self.o.live[self.live_reads.min(self.o.live.len() - 1)];
+                self.live_reads += 1;
+                read.parse::<u64>().unwrap() >= 1_000_000
+            };
+            if landed {
+                let plan = &mut out["funding_plan"];
+                plan["withdrawal_amount"] = json!("0");
+                plan["withdrawal_to"] = Value::Null;
+                let requests = plan["requests"].as_array().unwrap().clone();
+                plan["requests"] = requests
+                    .into_iter()
+                    .filter(|request| request["kind"] != "transfer_out")
+                    .collect();
+            }
             return out;
         }
         let live = if self.o.live.is_empty() {
@@ -494,6 +517,9 @@ impl State {
             "POST /v1/transfers" => {
                 self.intent["funding"] = body.get("funding").cloned().unwrap_or(json!("venue"));
                 let id = body["client_transfer_id"].as_str().unwrap().to_owned();
+                if let Some(move_id) = body.get("move_id").filter(|_| self.o.echoes_move) {
+                    merge(&mut self.intent, &json!({"client_transfer_id": id, "move_id": move_id}));
+                }
                 if self.original.is_none() && id.contains(':') {
                     // A renewal cancelled the original first; a retry leaves it with its take.
                     let mut original = self.intent.clone();
@@ -717,6 +743,12 @@ impl State {
     }
 }
 
+/// The mock API of a 1 USDC Hyperliquid → Polymarket transfer behind every route a test does
+/// not mount itself, for the flows built on transfers; `levels` replaces its book.
+pub(in crate::flows) async fn simulated(levels: Option<Value>) -> Harness {
+    Taker::new(Options { levels, echoes_move: true, ..Options::default() }).await.harness
+}
+
 /// A taker on the mock API, with its journal.
 struct Taker {
     harness: Harness,
@@ -784,6 +816,16 @@ impl Taker {
     /// Signs in and runs `request`.
     async fn run(&self, request: &TransferRequest) -> Result<TransferOutcome> {
         self.harness.session_with(self.journal.clone()).await.transfer(request).await
+    }
+
+    /// Signs in and runs `request`, its transactions sent by `sender`.
+    async fn run_with(
+        &self,
+        request: &TransferRequest,
+        sender: &dyn TransactionSender,
+    ) -> Result<TransferOutcome> {
+        let session = self.harness.session_with(self.journal.clone()).await;
+        session.transfer_with(request, sender).await
     }
 
     /// The flow's requests, as `"VERB /path"`, sign-in and venue reads left out.
@@ -1056,8 +1098,9 @@ async fn unsupported_requests_fail_before_any_request() {
     )
     .funding(Funding::Wallet);
     assert!(matches!(t.run(&transfer(aster)).await, Err(Error::InvalidRequest(_))));
+    // GMX margin leaves by the payer's own `transferOut`: a sender sends it.
     let gmx = venue_from(t.owner(), VenueId::Gmx);
-    assert_eq!(refused(t.run(&gmx).await), (VerificationKind::Unsupported, details::VENUE));
+    assert!(matches!(t.run(&gmx).await, Err(Error::TransactionSenderRequired)));
     let lighter_wallet = TradeTerms::new(
         VenueId::Hyperliquid,
         VenueId::Lighter,
@@ -1118,6 +1161,118 @@ async fn the_book_is_priced_at_the_callers_clock() {
     assert!(matches!(t.run(&venue(t.owner())).await, Err(Error::QuoteUnavailable(_))));
     assert_eq!(t.signatures(), 0);
     assert_eq!(t.withdrawals().await, Vec::<String>::new());
+}
+
+// GMX margin leaves by the payer's own `transferOut`.
+
+/// The host's wallet: what it is asked, answered in turn by `answers` (`declined`: nothing
+/// sent; `lost`: outcome unknown), then with one hash; `status` for a request it was asked.
+#[derive(Default)]
+struct Sends {
+    sent: Mutex<Vec<crate::Transaction>>,
+    answers: Mutex<VecDeque<&'static str>>,
+    status: Mutex<Option<crate::SendStatus>>,
+}
+
+impl Sends {
+    fn answering(answers: &[&'static str]) -> Self {
+        Self { answers: Mutex::new(answers.iter().copied().collect()), ..Self::default() }
+    }
+
+    fn count(&self) -> usize {
+        self.sent.lock().unwrap().len()
+    }
+}
+
+impl TransactionSender for Sends {
+    fn send(&self, transaction: crate::Transaction) -> crate::SendFuture<'_> {
+        self.sent.lock().unwrap().push(transaction);
+        let answer = self.answers.lock().unwrap().pop_front();
+        Box::pin(async move {
+            match answer {
+                Some("declined") => Err(crate::SendError::NotSent("declined".into())),
+                Some(_) => Err(crate::SendError::Unknown("lost".into())),
+                None => Ok(alloy_primitives::B256::repeat_byte(0x33)),
+            }
+        })
+    }
+
+    fn status<'a>(&'a self, _: &'a str) -> crate::StatusFuture<'a> {
+        let status = *self.status.lock().unwrap();
+        Box::pin(async move { Ok(status.unwrap_or(crate::SendStatus::Unknown)) })
+    }
+}
+
+/// A GMX transfer whose `transferOut` arrives on the second read of the plan.
+async fn gmx_taker() -> Taker {
+    Taker::new(Options {
+        from: Some("gmx"),
+        withdrawal_amount: Some("600000"),
+        live: vec!["400000", "1000000"],
+        ..Options::default()
+    })
+    .await
+}
+
+/// The journalled `transferOut` of the transfer.
+async fn transfer_out_record(t: &Taker) -> Option<Value> {
+    let bytes = t.journal.load(&t.key(&format!("transfer_out:{T1}"))).await.unwrap()?;
+    Some(serde_json::from_slice(&bytes).unwrap())
+}
+
+/// "From GMX, `amount` of the signer's GMX Account to its own address, by its own transaction;
+/// then the plan finds it in the wallet": sent once, through the sender, never as a withdrawal
+/// LaMarge relays, counted as moved once its funds arrived, and not sent again on a later run.
+#[tokio::test]
+async fn gmx_margin_funds_the_take_by_the_payers_own_transfer_out() {
+    let t = gmx_taker().await;
+    let sends = Sends::default();
+    let request = venue_from(t.owner(), VenueId::Gmx);
+    assert_eq!(states(t.run_with(&request, &sends).await), paid());
+    let sent = sends.sent.lock().unwrap().clone();
+    let [transfer_out] = sent.try_into().unwrap();
+    assert_eq!(transfer_out.chain_id, deployments::GMX.id);
+    assert_eq!(transfer_out.to, gmx::TRANSFER_ROUTER);
+    assert_eq!(transfer_out.data, gmx::transfer_out(U256::from(600_000u64)).to_vec());
+    assert_eq!(t.withdrawals().await, Vec::<String>::new());
+    assert_eq!(transfer_out_record(&t).await.unwrap()["arrived"], true);
+    assert_eq!(states(t.run_with(&request, &sends).await), paid());
+    assert_eq!(sends.count(), 1, "never sent again");
+}
+
+/// "Refused before broadcast, nothing left GMX": the run ends pending, its record removed, and
+/// the next run asks again.
+#[tokio::test]
+async fn a_transfer_out_the_sender_did_not_send_is_asked_again_on_the_next_run() {
+    let t = gmx_taker().await;
+    let sends = Sends::answering(&["declined"]);
+    let request = venue_from(t.owner(), VenueId::Gmx);
+    assert_eq!(pending(t.run_with(&request, &sends).await), PendingReason::TransferOutNotSent);
+    assert_eq!(transfer_out_record(&t).await, None);
+    assert_eq!(states(t.run_with(&request, &sends).await), paid());
+    assert_eq!(sends.count(), 2);
+}
+
+/// "Broadcast, its outcome stays unknown": never asked again while the sender cannot tell; asked
+/// again once it says nothing was sent.
+#[tokio::test]
+async fn a_transfer_out_of_unknown_outcome_is_asked_again_only_once_known_unsent() {
+    let t = Taker::new(Options {
+        from: Some("gmx"),
+        withdrawal_amount: Some("600000"),
+        live: vec!["400000"],
+        ..Options::default()
+    })
+    .await;
+    let sends = Sends::answering(&["lost"]);
+    let request = venue_from(t.owner(), VenueId::Gmx);
+    let request = request.arrival_timeout(Duration::from_millis(20));
+    assert_eq!(pending(t.run_with(&request, &sends).await), PendingReason::ArrivalUnconfirmed);
+    assert_eq!(pending(t.run_with(&request, &sends).await), PendingReason::ArrivalUnconfirmed);
+    assert_eq!(sends.count(), 1, "unknown: never asked again");
+    *sends.status.lock().unwrap() = Some(crate::SendStatus::NotSent);
+    assert_eq!(pending(t.run_with(&request, &sends).await), PendingReason::ArrivalUnconfirmed);
+    assert_eq!(sends.count(), 2, "known unsent: asked again");
 }
 
 // The plan decides the withdrawal.

@@ -28,6 +28,7 @@ use crate::{
 mod bridge;
 mod conversion;
 mod maker;
+mod move_funds;
 mod quoter;
 mod records;
 mod route;
@@ -39,6 +40,7 @@ mod withdraw;
 pub use bridge::*;
 pub use conversion::{ConversionPreview, ConversionTerms};
 pub use maker::*;
+pub use move_funds::{MoveFundsRequest, MoveOutcome, MovePlan, MoveWait};
 pub use quoter::*;
 pub use route::{RouteLeg, RouteNotCommitted, RouteOutcome, RouteRequest, groupable};
 pub use take::*;

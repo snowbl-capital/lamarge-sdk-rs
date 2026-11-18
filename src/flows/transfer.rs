@@ -17,7 +17,7 @@ use super::{
     take::{self, AtOnce, TakeInput},
 };
 use crate::{
-    Error, Result, Session, TransactionSender,
+    Error, Result, SendError, SendStatus, Session, Transaction, TransactionSender,
     book::{BookError, SweepTerms, delivery_floor},
     deployments,
     error::{ApiError, ErrorCode, Reason},
@@ -26,11 +26,16 @@ use crate::{
         MakerLeg, PaymentLeg, PaymentSetup, StepStatus, TakePreparation, TransferIntent,
         Withdrawal, WithdrawalState,
     },
-    protocol::checks::{
-        details::{self, changed, differs, stale},
-        funding::{PlanTerms, check_funding_plan, check_wallet_capability, check_wallet_funding},
-        take::{TakeIntent, at_once_cutoff, signable_until},
-        withdrawal::{check_withdrawal, signed_at},
+    protocol::{
+        checks::{
+            details::{self, changed, differs, stale},
+            funding::{
+                PlanTerms, check_funding_plan, check_wallet_capability, check_wallet_funding,
+            },
+            take::{TakeIntent, at_once_cutoff, signable_until},
+            withdrawal::{check_withdrawal, signed_at},
+        },
+        gmx,
     },
     transport::{Call, ops},
     types::{
@@ -183,6 +188,9 @@ pub enum PendingReason {
     WithdrawalUnknown,
     /// The venue refused the withdrawal (`intent.withdrawal.error` says why).
     WithdrawalRefused,
+    /// The sender sent nothing for GMX's `transferOut` (the owner declined, a signature timed
+    /// out, gas was missing): running again asks again.
+    TransferOutNotSent,
 }
 
 impl Session {
@@ -195,6 +203,8 @@ impl Session {
     ///   server plans so, else taken once the funds arrive.
     /// - Wallet funds ([`Funding::Wallet`]): nothing is withdrawn; a shortfall stops before
     ///   anything is signed, and the escrow's permit is signed first when needed.
+    /// - GMX margin: the payer sends its own `transferOut` to its address, through
+    ///   [`Self::transfer_with`]'s sender, once; the take waits until the plan sees it arrive.
     /// - Lighter or Aster: the take pays directly.
     ///
     /// Every answer is checked against `request` first: the transfer's terms, its funding plan,
@@ -208,8 +218,8 @@ impl Session {
     /// # Errors
     ///
     /// - [`Error::InvalidRequest`] before any request for a combination the API refuses;
-    ///   `Verification(Unsupported)` for GMX venue funding or a venue or funding this release
-    ///   does not support.
+    ///   `Verification(Unsupported)` for a venue or funding this release does not support;
+    ///   [`Error::TransactionSenderRequired`] for GMX venue funding without a sender.
     /// - `Verification(Changed)` naming the term when the transfer is answered with other terms
     ///   than `request`'s, or the wallet funds no longer cover it; `Verification(..)` when a
     ///   check fails, with nothing signed.
@@ -408,7 +418,9 @@ async fn run(
     sender: Option<&dyn TransactionSender>,
 ) -> Result<TransferOutcome> {
     validate(request)?;
-    if request.conversion.is_some() && sender.is_none() {
+    // A conversion, and GMX margin, leave by a transaction the payer sends itself.
+    let gmx_margin = !request.terms.wallet_funding() && request.terms.from == VenueId::Gmx;
+    if (request.conversion.is_some() || gmx_margin) && sender.is_none() {
         return Err(Error::TransactionSenderRequired);
     }
     let pointer = session.record_key(&format!("transfer:{}", request.id));
@@ -426,7 +438,16 @@ async fn run(
         post(session, request, &pointer, &request.id, false, None).await?
     };
     let conversion = intent.conversion.as_ref().and_then(|conversion| conversion.id);
-    let mut run = Run { session, request, pointer, intent, authorizing: false, sender, conversion };
+    let mut run = Run {
+        session,
+        request,
+        pointer,
+        intent,
+        authorizing: false,
+        sender,
+        conversion,
+        moved_out: false,
+    };
     match run.start().await {
         Ok(fills) => Ok(TransferOutcome::Filled { intent: run.intent, fills }),
         Err(Halt::Pending(reason)) => {
@@ -497,10 +518,6 @@ async fn read(session: &Session, id: TransferId, plan: bool) -> Result<TransferI
 fn validate(request: &TransferRequest) -> Result<()> {
     take::validate(&request.terms)?;
     let terms = &request.terms;
-    if !terms.wallet_funding() && terms.from == VenueId::Gmx {
-        // GMX margin leaves by a transaction the signer sends: not in this release.
-        return Err(details::unsupported(details::VENUE).into());
-    }
     if let Some(conversion) = &request.conversion {
         let funded = terms.from == VenueId::Polymarket
             && terms.wallet_funding()
@@ -530,6 +547,8 @@ struct Run<'a> {
     sender: Option<&'a dyn TransactionSender>,
     /// The conversion the transfer was first answered with: its replacements reuse it.
     conversion: Option<uuid::Uuid>,
+    /// GMX funds sent to the wallet by the payer's `transferOut`, which the plan has yet to see.
+    moved_out: bool,
 }
 
 impl Run<'_> {
@@ -656,10 +675,10 @@ impl Run<'_> {
                 .withdrawal
                 .as_ref()
                 .is_some_and(|withdrawal| withdrawal.state == WithdrawalState::Relayed);
-            self.read_intent(relayed).await?;
+            self.read_intent(relayed || self.moved_out).await?;
             reread = true;
         }
-        if self.intent.withdrawal.is_none() && funds.is_none() {
+        if self.intent.withdrawal.is_none() && !self.moved_out && funds.is_none() {
             return Err(stale(details::WALLET_FUNDS_OBSERVED_AT).into());
         }
         // Only the live funding plan proves arrival or detects funds spent since the read.
@@ -679,6 +698,9 @@ impl Run<'_> {
             }
             self.check_withdrawal_state()?;
             reread = true;
+        }
+        if self.intent.from == VenueId::Gmx {
+            self.transfer_out_arrived().await?;
         }
         if !reread {
             self.read_intent(plan.is_none()).await?;
@@ -725,9 +747,88 @@ impl Run<'_> {
             let balances = funds.map(|funds| funds.balances.as_slice());
             return self.take_at_once(amount, &typed_data, balances).await;
         }
+        if self.intent.from == VenueId::Gmx {
+            // Its funds leave GMX by the payer's own transaction, whose arrival only a fresh
+            // read shows.
+            if funds.is_none() {
+                return Err(stale(details::WALLET_FUNDS_OBSERVED_AT).into());
+            }
+            self.transfer_out(amount).await?;
+            self.moved_out = true;
+            return Ok(None);
+        }
         let withdrawal = self.withdraw_alone(amount, &record).await?;
         self.intent.withdrawal = Some(withdrawal);
         Ok(None)
+    }
+
+    /// From GMX, `amount` of the payer's GMX Account to its own address by its own transaction;
+    /// then the plan finds it in the wallet. One sent for this transfer is never asked again, nor
+    /// one asked within ten minutes whose outcome the sender cannot tell; after that, one whose
+    /// funds never arrived may be asked again: a second only moves the payer's funds to itself.
+    async fn transfer_out(&self, amount: Amount) -> Step<()> {
+        let sender = self.sender.ok_or(Error::TransactionSenderRequired)?;
+        let journal = self.session.journal();
+        let key = self.key(&transfer_out_key(self.intent.id));
+        let _turn = journal.lock(&key).await;
+        let now = self.now().timestamp_millis();
+        if let Some(mut known) = records::load::<TransferOut>(journal, &key).await? {
+            if known.hash.is_some() {
+                return Ok(());
+            }
+            // Asked with no answer recorded: only the sender knows whether it went, and one of
+            // unknown outcome is never asked again.
+            match sender.status(&known.id).await.unwrap_or(SendStatus::Unknown) {
+                SendStatus::Sent(hash) => {
+                    known.hash = Some(hash);
+                    records::save(journal, &key, &known, true).await?;
+                    return Ok(());
+                }
+                SendStatus::NotSent => {}
+                _ => return Ok(()),
+            }
+        }
+        let id = format!("lamarge.transfer-out.{}.{now}", self.intent.id);
+        let asked = TransferOut { amount, at: now, id, hash: None, arrived: false };
+        records::save(journal, &key, &asked, false).await?;
+        tracing::info!(%amount, "sending GMX's transferOut");
+        let transaction = Transaction {
+            id: asked.id.clone(),
+            chain_id: deployments::GMX.id,
+            to: gmx::TRANSFER_ROUTER,
+            data: gmx::transfer_out(amount.get()).to_vec(),
+            value: U256::ZERO,
+        };
+        match sender.send(transaction).await {
+            Ok(hash) => {
+                records::save(journal, &key, &TransferOut { hash: Some(hash), ..asked }, true)
+                    .await?;
+                Ok(())
+            }
+            Err(SendError::NotSent(error)) => {
+                // Refused before broadcast: nothing left GMX.
+                tracing::info!(%error, "transferOut not sent");
+                records::delete(journal, &key, true).await?;
+                Err(Halt::Pending(PendingReason::TransferOutNotSent))
+            }
+            Err(error) => {
+                tracing::warn!(%error, "transferOut outcome unknown");
+                Ok(())
+            }
+        }
+    }
+
+    /// The transfer's funds are there: its `transferOut`, sent, counts as moved from now on.
+    async fn transfer_out_arrived(&self) -> Result<()> {
+        let journal = self.session.journal();
+        let key = self.key(&transfer_out_key(self.intent.id));
+        let _turn = journal.lock(&key).await;
+        match records::load::<TransferOut>(journal, &key).await? {
+            Some(sent) if sent.hash.is_some() && !sent.arrived => {
+                records::save(journal, &key, &TransferOut { arrived: true, ..sent }, true).await
+            }
+            _ => Ok(()),
+        }
     }
 
     /// The take prepared against the withdrawal prepared for it, then signed and submitted with
@@ -1017,6 +1118,15 @@ impl Run<'_> {
                 || withdrawal.state != WithdrawalState::Relayed
                 || intent.funding_plan.is_none());
         }
+        // The plan reads the chain itself: it needs no withdrawal once the `transferOut` arrived.
+        if self.moved_out
+            && intent
+                .funding_plan
+                .as_ref()
+                .is_none_or(|plan| plan.withdrawal_amount != Amount::ZERO)
+        {
+            return Ok(true);
+        }
         if intent.funding_plan.as_ref().is_some_and(|plan| plan.withdrawal_amount != Amount::ZERO) {
             let detail =
                 if self.wallet_funding() { details::WALLET_FUNDS } else { details::FUNDING_PLAN };
@@ -1281,5 +1391,25 @@ fn withdrawal_key(id: TransferId) -> String {
     format!("transfer-withdrawal:{id}")
 }
 
+/// Where a GMX transfer records its `transferOut`, from just before it is asked: its funds may
+/// have left GMX.
+pub(super) fn transfer_out_key(id: TransferId) -> String {
+    format!("transfer_out:{id}")
+}
+
+/// A transfer's `transferOut` (`{ns}transfer_out:{transfer}`): asked at `at` (Unix ms) under the
+/// sender's `id`, with its hash once broadcast, `arrived` once the transfer's funds were seen
+/// after it: only then does it count as moved, the sender returning no receipt.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct TransferOut {
+    pub(crate) amount: Amount,
+    at: i64,
+    pub(crate) id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) hash: Option<alloy_primitives::B256>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub(crate) arrived: bool,
+}
+
 #[cfg(test)]
-mod tests;
+pub(super) mod tests;

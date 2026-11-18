@@ -320,6 +320,11 @@ impl Session {
         api::Bridges { inner: self.transport(), auth: self.auth() }
     }
 
+    /// The session's direct operations.
+    pub fn directs(&self) -> api::Directs<'_> {
+        api::Directs { inner: self.transport(), auth: self.auth() }
+    }
+
     /// The session's maker credentials.
     pub fn credentials(&self) -> api::Credentials<'_> {
         api::Credentials { inner: self.transport(), auth: self.auth() }

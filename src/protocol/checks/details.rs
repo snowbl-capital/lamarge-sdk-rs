@@ -360,6 +360,19 @@ pub(crate) const CANCELS: &str = "cancels";
 // Moves and bridges.
 /// The transfer belongs to another move than the request names.
 pub(crate) const MOVE_ID: &str = "move_id";
+/// The move is answered with other terms than its request's.
+pub(crate) const MOVE: &str = "move";
+/// The move's quote does not add up to its `amount_in`, or LaMarge's part is not the move's.
+pub(crate) const MOVE_PLAN: &str = "move plan";
+/// The bridge is answered with other terms than its part's, or another identity than the one
+/// first journalled.
+pub(crate) const BRIDGE: &str = "bridge";
+/// The direct operation is answered with other terms than its request's or the pins, or another
+/// identity than the one first journalled.
+pub(crate) const DIRECT: &str = "direct operation";
+/// The direct operation's funds are read for another owner, token or spender, or no longer
+/// cover it.
+pub(crate) const DIRECT_FUNDING: &str = "direct funding";
 /// The bridge's wallet is not a token a bridge starts from or delivers to.
 pub(crate) const BRIDGE_WALLET: &str = "bridge wallet";
 /// The bridge's origin is not one a bridge debits (`HyperCore` or a wallet), or not the one the
