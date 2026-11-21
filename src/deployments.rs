@@ -1,6 +1,6 @@
 //! Pinned deployments: chains, tokens, escrows and signing domains per environment.
 //!
-//! Copied from `sdk/src/protocol/{protocol,deployments}.ts`; `tests/vectors/pins.json`, generated
+//! Copied from `sdk-ts/src/protocol/{protocol,deployments}.ts`; `tests/vectors/pins.json`, generated
 //! from the TypeScript objects, must equal these tables (unit test below). A new deployment
 //! changes both SDKs together.
 

@@ -26,8 +26,8 @@ use crate::{
     api::{DirectRequest, MoveQuery, MoveRecipient, MoveRequest},
     deployments,
     model::{
-        BridgeState, BridgeUnavailable, DirectState, FillState, Funding, Move, MoveEndpoint,
-        MoveVenue, Route, WithdrawalState,
+        BridgeState, BridgeUnavailable, ConversionState, DirectState, FillState, Funding, Move,
+        MoveEndpoint, MoveVenue, Route, TransferIntent, WithdrawalState,
     },
     protocol::{
         checks::details::{self, changed, differs, unsupported},
@@ -161,6 +161,22 @@ fn same_recipient(value: &str, recipient: &str) -> bool {
         return value == recipient;
     }
     matches!((value.parse::<Address>(), recipient.parse::<Address>()), (Ok(a), Ok(b)) if a == b)
+}
+
+/// Whether an unpaid part's transfer is cancelled before its funds are counted: neither taken,
+/// cancelled nor funded by a withdrawal, nor converting. LaMarge keeps a transfer whose
+/// conversion is prepared or sent until the conversion resolves (it expires at its deadline).
+fn dismissable(intent: &TransferIntent) -> bool {
+    let converting = intent.conversion.as_ref().is_some_and(|conversion| {
+        matches!(
+            conversion.state.as_ref().unwrap_or(&ConversionState::Prepared),
+            ConversionState::Prepared | ConversionState::Pending
+        )
+    });
+    intent.take_id.is_none()
+        && intent.cancelled_at.is_none()
+        && intent.withdrawal.is_none()
+        && !converting
 }
 
 /// The LaMarge venue an endpoint maps to: an account's own, or the escrow venue on a wallet's
@@ -672,11 +688,13 @@ impl MoveRun<'_> {
         let mut moved = U256::ZERO;
         for id in ids {
             let mut intent = session.transfers().get(id).await?;
-            if intent.take_id.is_none()
-                && intent.cancelled_at.is_none()
-                && intent.withdrawal.is_none()
-            {
-                session.transfers().cancel(id).await?;
+            if dismissable(&intent) {
+                // A refusal or a lost answer cancels nothing this run counts on: the move ends on
+                // the error that stopped it, not on the cancellation's.
+                if let Err(cancel) = session.transfers().cancel(id).await {
+                    tracing::warn!(transfer = %id, error = %cancel, "unpaid transfer not cancelled");
+                    return Err(error);
+                }
                 intent = session.transfers().get(id).await?;
             }
             let ended = match intent.take_id {
@@ -687,7 +705,7 @@ impl MoveRun<'_> {
                 matches!(withdrawal.state, WithdrawalState::Relayed | WithdrawalState::Refused)
             });
             let converting = intent.conversion.as_ref().is_some_and(|conversion| {
-                conversion.state.as_ref() != Some(&crate::model::ConversionState::Expired)
+                conversion.state.as_ref() != Some(&ConversionState::Expired)
             });
             let unsigned = match intent.take_id {
                 Some(take) => {

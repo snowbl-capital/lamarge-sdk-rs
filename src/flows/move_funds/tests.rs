@@ -1,5 +1,5 @@
-//! Move flow tests, ported from `sdk/src/move.test.ts` and the journalled bridge of
-//! `sdk/src/bridge.test.ts` (each test names its source), on a stateful mock of moves and bridges
+//! Move flow tests, ported from `sdk-ts/src/move.test.ts` and the journalled bridge of
+//! `sdk-ts/src/bridge.test.ts` (each test names its source), on a stateful mock of moves and bridges
 //! over Relay's saved orders, with the transfer flow's mock API behind it.
 
 use std::sync::{Arc, Mutex};
@@ -845,4 +845,31 @@ async fn a_declined_gmx_withdrawal_is_never_asked_again_and_released_once_expire
     assert_eq!(s.closed().unwrap(), closing(HUNDRED, "withdrawal_refused"));
     assert!(s.bridges().is_empty());
     assert_eq!(s.sent().len(), 1);
+}
+
+/// "an unpaid part whose conversion is still prepared is left to it: the move ends on the error
+/// that stopped it": LaMarge refuses to cancel it until the conversion resolves.
+#[test]
+fn an_unpaid_transfer_still_converting_is_never_cancelled() {
+    let mut open = fixture("transfer_page/data/0");
+    for field in ["take_id", "cancelled_at", "withdrawal"] {
+        open[field] = Value::Null;
+    }
+    let with = |state: Option<&str>| {
+        let mut intent = open.clone();
+        match state {
+            Some(state) => intent["conversion"]["state"] = json!(state),
+            None => intent["conversion"] = Value::Null,
+        }
+        dismissable(&serde_json::from_value(intent).unwrap())
+    };
+    assert!(with(None), "no conversion");
+    assert!(!with(Some("prepared")));
+    assert!(!with(Some("pending")));
+    assert!(with(Some("ready")));
+    assert!(with(Some("expired")));
+    let mut taken = open.clone();
+    taken["conversion"] = Value::Null;
+    taken["take_id"] = json!(T1);
+    assert!(!dismissable(&serde_json::from_value(taken).unwrap()));
 }

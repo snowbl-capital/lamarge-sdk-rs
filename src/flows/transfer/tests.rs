@@ -1,4 +1,4 @@
-//! Transfer flow tests, ported from `sdk/src/transfer.test.ts` (each test names its source) on a
+//! Transfer flow tests, ported from `sdk-ts/src/transfer.test.ts` (each test names its source) on a
 //! stateful mock of the API ported from that file's `api()`.
 #![expect(
     clippy::too_many_lines,

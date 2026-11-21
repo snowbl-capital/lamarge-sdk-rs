@@ -111,7 +111,7 @@ mod tests {
         );
     }
 
-    /// `sdk/src/send.test.ts`: Polymarket's encoder and viem give this hash; the server pins it.
+    /// `sdk-ts/src/send.test.ts`: Polymarket's encoder and viem give this hash; the server pins it.
     #[test]
     fn the_operation_hash_is_polymarkets() {
         let expected = b256!("116bb5d03ed73e04edd7c0ebfd0f9c37d9cf5dd00de629f8949cbdfc63e11825");

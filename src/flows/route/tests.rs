@@ -1,4 +1,4 @@
-//! Route tests, ported from `sdk/src/grouped.test.ts`, `route.test.ts` and
+//! Route tests, ported from `sdk-ts/src/grouped.test.ts`, `route.test.ts` and
 //! `route-grouped.test.ts` (each test names its source), on a stateful mock of the routes a route
 //! reads and writes. Every continuation answers with a take already paid, which the transfer flow
 //! recovers without signing: the take flow's own tests cover signing it.

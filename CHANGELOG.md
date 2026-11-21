@@ -4,6 +4,12 @@ All notable changes to this crate are documented here. The format is based on [K
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-21
+
+### Fixed
+
+- A move whose LaMarge part fails no longer cancels a transfer whose Polygon conversion is still prepared or sent, which LaMarge refuses: it ends on the error that stopped it (for example a wallet short of the USDC to convert), not on `STATE_CONFLICT`. A cancellation refused or unanswered for any other transfer ends it the same way.
+
 ## [0.3.0] - 2026-11-18
 
 ### Added
@@ -42,7 +48,8 @@ All notable changes to this crate are documented here. The format is based on [K
 - Features `aws-lc-rs` (default) and `ring` select the rustls provider.
 - `ClientBuilder::lighter_reads`: the SDK's reads of Lighter's public API go through the caller's `LighterReads`, from its address and within its rate budget.
 
-[Unreleased]: https://github.com/snowbl-capital/lamarge-sdk-rs/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/snowbl-capital/lamarge-sdk-rs/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.3.1
 [0.3.0]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.3.0
 [0.2.0]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.2.0
 [0.1.0]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.1.0

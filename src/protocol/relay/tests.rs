@@ -1,4 +1,4 @@
-//! The vectors and rejections of `sdk/src/protocol/relay.test.ts`, on Relay orders saved from
+//! The vectors and rejections of `sdk-ts/src/protocol/relay.test.ts`, on Relay orders saved from
 //! live quotes (`tests/vectors/relay.json`).
 
 use alloy_primitives::{U256, address};

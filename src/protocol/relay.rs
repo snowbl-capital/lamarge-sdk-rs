@@ -1,7 +1,7 @@
 //! Relay (relay.link), the external bridge LaMarge plans and tracks: its pins, its order's id,
 //! the check of an order against the caller's terms, and the payloads a bridge signs or sends.
 //!
-//! Follows `sdk/src/protocol/relay.ts`: `tests/vectors/pins.json` holds the pins equal, and
+//! Follows `sdk-ts/src/protocol/relay.ts`: `tests/vectors/pins.json` holds the pins equal, and
 //! `tests/vectors/relay.json` holds orders of live quotes. Every address is pinned, never taken
 //! from an answer: an order is accepted only if its hash, contracts, solver, recipients and
 //! amounts match what the pins and the caller's terms rebuild.

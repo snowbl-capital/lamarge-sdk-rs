@@ -1,4 +1,4 @@
-//! Ported from `sdk/src/book.test.ts` and `sdk/src/book-limits.test.ts`, plus overflow and
+//! Ported from `sdk-ts/src/book.test.ts` and `sdk-ts/src/book-limits.test.ts`, plus overflow and
 //! invalid-book cases.
 
 use super::*;
