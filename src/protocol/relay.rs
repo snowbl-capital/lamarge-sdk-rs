@@ -708,29 +708,38 @@ pub(crate) fn bridge_authorization(id: B256, payer: Address, nonce: u64) -> Type
     eip712::typed(&mapping, eip712::domain("RelayNonceMapping", "2", 1, Some(Address::ZERO)))
 }
 
-/// The `HyperCore` `SendAsset` of `amount` (6 decimals) from the payer's perps to Relay's
-/// depository, its amount written with six decimals as Relay does.
-pub(crate) fn bridge_send_asset(amount: U256, nonce: u64) -> SendAsset {
+/// The `HyperCore` `SendAsset` of `amount` (6 decimals) to Relay's depository, its amount
+/// written with six decimals as Relay does. It leaves from the bridge's `source_dex`: the payer's
+/// perps (`""`) or, for a unified account, spot; nothing else.
+pub(crate) fn bridge_send_asset(
+    amount: U256,
+    nonce: u64,
+    source_dex: Option<&str>,
+) -> Result<SendAsset, VerificationError> {
+    let Some(source_dex @ ("" | "spot")) = source_dex else {
+        return Err(differs(details::SOURCE_DEX));
+    };
     let million = U256::from(1_000_000u32);
     let fraction = u32::try_from(amount % million).unwrap_or_default();
-    SendAsset {
+    Ok(SendAsset {
         hyperliquid_chain: "Mainnet".to_owned(),
         destination: format!("{HYPERLIQUID_DEPOSITORY:#x}"),
-        source_dex: String::new(),
+        source_dex: source_dex.to_owned(),
         destination_dex: String::new(),
         token: deployments::HYPERLIQUID_USDC.to_owned(),
         amount: format!("{}.{fraction:06}", amount / million),
         from_sub_account: String::new(),
         nonce,
-    }
+    })
 }
 
 /// Both payloads a `HyperCore`-origin bridge signs, for `expect.payer`, until 30 s before the
-/// order's deadline.
+/// order's deadline, its send from `source_dex`.
 pub(crate) fn hypercore_payloads(
     checked: Checked,
     expect: &Expectation<'_>,
     nonce: u64,
+    source_dex: Option<&str>,
 ) -> Result<[Verified; 2], VerificationError> {
     if relay_endpoint(expect.from, true)?.vm != Vm::Hyperliquid {
         return Err(unsupported(details::BRIDGE_ORIGIN));
@@ -738,6 +747,7 @@ pub(crate) fn hypercore_payloads(
     if expect.amount_in.is_zero() || nonce == 0 {
         return Err(differs(details::NONCE));
     }
+    let send = bridge_send_asset(expect.amount_in, nonce, source_dex)?;
     let not_after = Some(i64::from(checked.deadline) - 30);
     let verified = |typed: TypedData| {
         let digest = typed.eip712_signing_hash().map_err(|_| differs(details::DIGEST))?;
@@ -745,7 +755,7 @@ pub(crate) fn hypercore_payloads(
     };
     Ok([
         verified(bridge_authorization(checked.id, expect.payer, nonce))?,
-        verified(bridge_send_asset(expect.amount_in, nonce).typed_data())?,
+        verified(send.typed_data())?,
     ])
 }
 

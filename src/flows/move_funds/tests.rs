@@ -112,6 +112,7 @@ impl Api {
         bridge["recipient"] = self.request["recipient"].clone();
         bridge["state"] = json!("prepared");
         bridge["nonce"] = if hypercore { json!((NOW * 1000).to_string()) } else { Value::Null };
+        bridge["source_dex"] = if hypercore { json!("") } else { Value::Null };
         bridge["order"] = json!({
             "id": relay_order_id(&self.order).unwrap(),
             "data": self.order,
@@ -498,7 +499,7 @@ async fn a_move_lamarge_cannot_take_goes_whole_through_a_hypercore_bridge() {
     let order: B256 = bridge["order"]["id"].as_str().unwrap().parse().unwrap();
     let nonce = u64::try_from(NOW * 1000).unwrap();
     let mapping = bridge_authorization(order, me, nonce);
-    let send = bridge_send_asset(U256::from(HUNDRED), nonce).typed_data();
+    let send = bridge_send_asset(U256::from(HUNDRED), nonce, Some("")).unwrap().typed_data();
     for (field, typed) in [("authorization", mapping), ("send_asset", send)] {
         let item = json!({"signature": body[field]});
         assert_eq!(signer_of(&item, &typed.eip712_signing_hash().unwrap()), me, "{field}");
@@ -512,7 +513,7 @@ async fn a_move_lamarge_cannot_take_goes_whole_through_a_hypercore_bridge() {
 async fn a_send_declined_after_the_mapping_asks_only_for_the_send_again() {
     let s = Scenario::hypercore(quote(None, Some(HUNDRED), 0, None)).await;
     let nonce = u64::try_from(NOW * 1000).unwrap();
-    let send = bridge_send_asset(U256::from(HUNDRED), nonce).typed_data();
+    let send = bridge_send_asset(U256::from(HUNDRED), nonce, Some("")).unwrap().typed_data();
     s.harness.signer().serve(&serde_json::to_value(&send).unwrap(), "send_asset");
     s.harness.decline("send_asset", 1);
     let sends =
@@ -657,7 +658,7 @@ async fn an_unpaid_lamarge_part_frees_its_share_for_the_bridge() {
     assert_eq!(parts[0]["amount"], "0");
 }
 
-/// "from a unified Hyperliquid account, a refused LaMarge take leaves its share unallocated,
+/// "from a portfolio-margin Hyperliquid account, a refused LaMarge take leaves its share unallocated,
 /// never bridged from the origin".
 #[tokio::test]
 async fn no_bridge_leaves_a_blocked_origin_its_rest_unallocated() {

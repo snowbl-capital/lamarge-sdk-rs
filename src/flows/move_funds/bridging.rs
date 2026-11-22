@@ -302,8 +302,12 @@ impl Run<'_> {
             let nonce = bridge.nonce.ok_or(differs(details::NONCE))?.get();
             let now_ms = self.session.transport().now().timestamp_millis();
             let nonce = relay::check_bridge_nonce(nonce, now_ms)?;
-            let [authorization, send] =
-                relay::hypercore_payloads(checked, &self.terms.expectation(), nonce)?;
+            let [authorization, send] = relay::hypercore_payloads(
+                checked,
+                &self.terms.expectation(),
+                nonce,
+                bridge.source_dex.as_deref(),
+            )?;
             if signed.authorization.is_none() {
                 signed.authorization = Some(self.session.sign(&authorization).await?);
                 records::save(journal, key, &signed, false).await?;

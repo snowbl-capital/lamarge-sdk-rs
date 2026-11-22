@@ -128,8 +128,10 @@ struct SignaturesBody {
 impl Session {
     /// Signs a `HyperCore`-origin bridge: checks its order against `terms`, signs Relay's nonce
     /// mapping and the `SendAsset` to Relay's pinned depository with the session's key (the
-    /// payer), and submits both. Signing again signs the same payloads: their nonce makes one
-    /// send at most.
+    /// payer), and submits both. Signing again signs the same payloads while the API serves the
+    /// bridge with the same nonce, which makes one send at most: a caller that holds that against
+    /// the API too keeps the nonce with the bridge's id and compares it before signing again, as
+    /// [`move_funds`](Self::move_funds) does in its journal.
     ///
     /// The crate runs no move: before each bridge, the caller checks that the move's parts not
     /// final without a debit (bridges not `failed` or `expired`, transfers at their take's
@@ -148,8 +150,12 @@ impl Session {
             let nonce = bridge.nonce.ok_or(differs(details::NONCE))?.get();
             let now_ms = self.transport().now().timestamp_millis();
             let nonce = relay::check_bridge_nonce(nonce, now_ms)?;
-            let [authorization, send] =
-                relay::hypercore_payloads(checked, &terms.expectation(), nonce)?;
+            let [authorization, send] = relay::hypercore_payloads(
+                checked,
+                &terms.expectation(),
+                nonce,
+                bridge.source_dex.as_deref(),
+            )?;
             let body = SignaturesBody {
                 authorization: self.sign(&authorization).await?,
                 send_asset: self.sign(&send).await?,

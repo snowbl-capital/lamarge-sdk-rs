@@ -1812,7 +1812,7 @@
             "$ref": "#/components/responses/NotFound"
           },
           "409": {
-            "description": "`STATE_CONFLICT`: the move is closed, its bridges would exceed its `amount_in`, a client id reused with other terms, the provider's nonce already used (create the bridge again), or `reason` `hyperliquid_mode` for a unified or portfolio-margin Hyperliquid account; `SLIPPAGE`: the bridge's guaranteed output is below the part's floor.",
+            "description": "`STATE_CONFLICT`: the move is closed, its bridges would exceed its `amount_in`, a client id reused with other terms, the provider's nonce already used (create the bridge again), or `reason` `hyperliquid_mode` for a portfolio-margin Hyperliquid account or one in an unsupported mode; `SLIPPAGE`: the bridge's guaranteed output is below the part's floor.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2000,7 +2000,7 @@
             "session": []
           }
         ],
-        "description": "The payer's signatures of the order's nonce mapping and of the `SendAsset` to the provider's depository, as the SDK rebuilds them from the order. LaMarge registers the mapping, then relays the send as a withdrawal (`withdrawal_id`). Resubmitting the same signatures returns the bridge.",
+        "description": "The payer's signatures of the order's nonce mapping and of the `SendAsset` to the provider's depository from the bridge's `source_dex`, as the SDK rebuilds them from the order. LaMarge registers the mapping, then relays the send as a withdrawal (`withdrawal_id`). Resubmitting the same signatures returns the bridge.",
         "requestBody": {
           "required": true,
           "content": {
@@ -2036,7 +2036,7 @@
             }
           },
           "400": {
-            "description": "`VALIDATION_ERROR`, `BAD_SIGNATURE`, or `WITHDRAWAL_EXPIRED` once the send is past its signing window.",
+            "description": "`VALIDATION_ERROR` (also when the account's mode no longer holds its USDC in `source_dex`), `BAD_SIGNATURE`, or `WITHDRAWAL_EXPIRED` once the send is past its signing window.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7296,6 +7296,13 @@
               "null"
             ],
             "description": "A HyperCore origin's nonce, shared by the mapping and the send."
+          },
+          "source_dex": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "A HyperCore origin's dex, which its `SendAsset` leaves from: `\"\"` (perps) for a standard account, `spot` for a unified one; fixed at creation by the account's mode. Null for other origins."
           },
           "account_credit": {
             "oneOf": [

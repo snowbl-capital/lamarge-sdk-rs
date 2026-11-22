@@ -60,7 +60,8 @@ async fn a_hypercore_bridge_signs_the_mapping_and_the_send_for_the_payer() {
     let [body] = harness.bodies("POST", &route).await.try_into().unwrap();
     let nonce = bridge.nonce.unwrap().get();
     let mapping = relay::bridge_authorization(bridge.order.id, me, nonce);
-    let send = relay::bridge_send_asset(U256::from(100_000_000u64), nonce).typed_data();
+    let send = relay::bridge_send_asset(U256::from(100_000_000u64), nonce, Some("")).unwrap();
+    let send = send.typed_data();
     for (field, typed) in [("authorization", mapping), ("send_asset", send)] {
         let item = json!({"signature": body[field]});
         assert_eq!(signer_of(&item, &typed.eip712_signing_hash().unwrap()), me, "{field}");
@@ -97,6 +98,11 @@ async fn nothing_is_signed_for_an_order_its_id_or_terms_do_not_match() {
     stale_nonce.nonce = Some(HyperliquidNonce::new(1_794_657_763_758));
     let refused = session.sign_bridge(&stale_nonce, &terms).await.unwrap_err();
     assert!(matches!(refused, Error::Verification(e) if e.detail == details::NONCE));
+    for source_dex in [None, Some("xyz".to_owned())] {
+        let other_dex = Bridge { source_dex, ..bridge.clone() };
+        let refused = session.sign_bridge(&other_dex, &terms).await.unwrap_err();
+        assert!(matches!(refused, Error::Verification(e) if e.detail == details::SOURCE_DEX));
+    }
 
     let refused = session.bridge_deposit(&bridge, &terms).await.unwrap_err();
     assert!(matches!(refused, Error::Verification(e) if e.kind == VerificationKind::Unsupported));

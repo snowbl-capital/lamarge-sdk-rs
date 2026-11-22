@@ -306,9 +306,15 @@ fn the_hypercore_authorization_and_send_equal_relays() {
     let ours = bridge_authorization(order_id(&case), PAYER, nonce);
     assert_eq!(ours.encode_type().unwrap(), relays.encode_type().unwrap());
     assert_eq!(ours.eip712_signing_hash().unwrap(), relays.eip712_signing_hash().unwrap());
-    let send = bridge_send_asset(U256::from(100_000_000u64), nonce).typed_data();
-    assert_eq!(serde_json::to_value(&send).unwrap()["message"], steps["send_asset"]);
-    assert_eq!(bridge_send_asset(U256::from(5u8), 1).amount, "0.000005");
+    let send = |dex| bridge_send_asset(U256::from(100_000_000u64), nonce, dex);
+    let message =
+        |dex| serde_json::to_value(send(dex).unwrap().typed_data()).unwrap()["message"].clone();
+    assert_eq!(message(Some("")), steps["send_asset"]);
+    let mut spot = steps["send_asset"].clone();
+    spot["sourceDex"] = json!("spot");
+    assert_eq!(message(Some("spot")), spot);
+    assert_eq!(send(Some("xyz")).unwrap_err(), differs(details::SOURCE_DEX));
+    assert_eq!(bridge_send_asset(U256::from(5u8), 1, Some("")).unwrap().amount, "0.000005");
 }
 
 #[test]
@@ -316,17 +322,18 @@ fn hypercore_payloads_sign_for_the_payer_until_the_deadline() {
     let case = case(PLAIN);
     let terms = Terms::of(&case);
     let checked = check_bridge_order(&case["order"], &terms.expectation(), NOW).unwrap();
-    let [authorization, send] = hypercore_payloads(checked, &terms.expectation(), 7).unwrap();
+    let [authorization, send] =
+        hypercore_payloads(checked, &terms.expectation(), 7, Some("")).unwrap();
     let deadline = i64::from(checked.deadline) - 30;
     assert_eq!((authorization.not_after(), send.not_after()), (Some(deadline), Some(deadline)));
     let expected = bridge_authorization(checked.id, PAYER, 7).eip712_signing_hash().unwrap();
     assert_eq!(authorization.digest(), expected);
     assert_eq!(
-        hypercore_payloads(checked, &terms.expectation(), 0).unwrap_err(),
+        hypercore_payloads(checked, &terms.expectation(), 0, Some("")).unwrap_err(),
         differs(details::NONCE)
     );
     let wallet = Terms::of(&self::case("arbitrum_to_hyperliquid"));
-    let refused = hypercore_payloads(checked, &wallet.expectation(), 7).unwrap_err();
+    let refused = hypercore_payloads(checked, &wallet.expectation(), 7, Some("")).unwrap_err();
     assert_eq!(refused, unsupported(details::BRIDGE_ORIGIN));
 }
 

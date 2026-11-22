@@ -83,7 +83,8 @@ open_enum! {
         BelowMinimum = "below_minimum",
         /// No bridge for these endpoints.
         Unsupported = "unsupported",
-        /// A unified or portfolio-margin Hyperliquid account cannot be the origin.
+        /// A portfolio-margin Hyperliquid account, or one in an unsupported mode, cannot be the
+        /// origin.
         HyperliquidMode = "hyperliquid_mode",
         /// The provider's guaranteed output misses the part's floor.
         Slippage = "slippage",
@@ -285,6 +286,10 @@ pub struct Bridge {
     /// A `HyperCore` origin's nonce, shared by the nonce mapping and the send.
     #[serde(deserialize_with = "super::required")]
     pub nonce: Option<HyperliquidNonce>,
+    /// A `HyperCore` origin's dex, which its send leaves from: `""` (perps) for a standard
+    /// account, `spot` for a unified one. Absent from a server before it, which still reads.
+    #[serde(default)]
+    pub source_dex: Option<String>,
     /// What a Polymarket, GMX or Aster account receives exactly.
     #[serde(deserialize_with = "super::required")]
     pub account_credit: Option<Amount>,

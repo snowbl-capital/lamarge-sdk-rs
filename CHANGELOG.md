@@ -4,6 +4,12 @@ All notable changes to this crate are documented here. The format is based on [K
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-22
+
+### Changed
+
+- A unified Hyperliquid account can start a `HyperCore` bridge: `Bridge::source_dex` names the dex its send leaves from (`""` perps, `spot` for a unified account), and `Session::sign_bridge` and `move_funds` sign the `SendAsset` to Relay's depository from it. Any other value, or none, signs nothing (`Verification`, `sourceDex`). Moves still read from a server without `source_dex`; only signing a `HyperCore` bridge needs it.
+
 ## [0.3.1] - 2026-11-21
 
 ### Fixed
@@ -48,7 +54,8 @@ All notable changes to this crate are documented here. The format is based on [K
 - Features `aws-lc-rs` (default) and `ring` select the rustls provider.
 - `ClientBuilder::lighter_reads`: the SDK's reads of Lighter's public API go through the caller's `LighterReads`, from its address and within its rate budget.
 
-[Unreleased]: https://github.com/snowbl-capital/lamarge-sdk-rs/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/snowbl-capital/lamarge-sdk-rs/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.4.0
 [0.3.1]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.3.1
 [0.3.0]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.3.0
 [0.2.0]: https://github.com/snowbl-capital/lamarge-sdk-rs/releases/tag/v0.2.0
