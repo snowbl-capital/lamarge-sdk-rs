@@ -4,6 +4,12 @@ All notable changes to this crate are documented here. The format is based on [K
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-24
+
+### Changed
+
+- A bridge into a Polymarket, GMX or Aster account credits it the whole output, not only the part's floor: nothing is left in the recipient's wallet. The router's calls are checked against the new ones (`RelayCredit` on Polygon and BSC, the whole balance to GMX's vault on Arbitrum), so this version refuses the orders an older server asks for, and older versions refuse the new ones. `account_credit` is the least credited, `wallet_surplus` zero.
+
 ## [0.4.0] - 2026-11-22
 
 ### Changed

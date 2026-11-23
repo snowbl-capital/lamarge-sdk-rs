@@ -6988,7 +6988,7 @@
                 "type": "null"
               }
             ],
-            "description": "Polymarket, GMX and Aster accounts receive exactly this; the rest of the output goes to the recipient's wallet on that chain. Null otherwise."
+            "description": "The least a Polymarket, GMX or Aster account is credited; it is credited the whole output. Null otherwise."
           },
           "wallet_surplus": {
             "oneOf": [
@@ -6999,7 +6999,7 @@
                 "type": "null"
               }
             ],
-            "description": "`amount_out` less `account_credit`, expected."
+            "description": "What reaches the recipient's wallet beside a Polymarket, GMX or Aster account, expected; zero, the account taking the whole output. Null otherwise."
           },
           "eta_seconds": {
             "type": "integer"
@@ -7312,7 +7312,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "The least a Polymarket, GMX or Aster account is credited; it is credited the whole output. Null otherwise."
           },
           "amount_out": {
             "oneOf": [
@@ -7333,7 +7334,8 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "description": "What reached the recipient's wallet beside a Polymarket, GMX or Aster account, once completed; zero, the account taking the whole output. Null otherwise."
           },
           "refund": {
             "description": "What the provider refunded, where, once refunded.",

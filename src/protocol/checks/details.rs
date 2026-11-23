@@ -419,7 +419,7 @@ pub(crate) const ORDER_MINIMUM: &str = "order.output.payments.minimumAmount";
 pub(crate) const ORDER_RECIPIENT: &str = "order.output.payments.recipient";
 /// The account credit is missing, below the floor or above the guaranteed output.
 pub(crate) const ACCOUNT_CREDIT: &str = "account credit";
-/// The router's calls are not exactly the account credit and sweep the terms rebuild, or a plain
+/// The router's calls are not exactly the whole-output credit and sweep the terms rebuild, or a plain
 /// payout has calls.
 pub(crate) const ORDER_CALLS: &str = "order.output.calls";
 

@@ -388,8 +388,9 @@ impl Session {
     /// the second paying what LaMarge leaves to continue with on `via`, in whole venue steps,
     /// for the route's least in proportion, once a read of `via` made after the delivery shows
     /// it there. `via` is the session of the account linked on `via`, when another than this
-    /// one: it receives the first take and pays the second. `sender` sends the first transfer's
-    /// conversion.
+    /// one: it receives the first take and pays the second. Taken take by take, the second is a
+    /// transfer from `via`: through Hyperliquid or Polymarket, its payer signs a withdrawal from
+    /// there, whatever `from` is. `sender` sends the first transfer's conversion.
     ///
     /// With [`RouteRequest::grouped`], a route whose first take pays inside a venue through an
     /// escrow venue ([`groupable`]) is signed at once: both takes are checked, signed back to

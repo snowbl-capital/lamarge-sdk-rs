@@ -233,7 +233,7 @@ fn each_tampered_field_is_refused() {
         ),
         (
             CALLS,
-            Box::new(|o| o["output"]["calls"].as_array_mut().unwrap().truncate(2)),
+            Box::new(|o| o["output"]["calls"].as_array_mut().unwrap().truncate(1)),
             differs(details::ORDER_CALLS),
         ),
         (
@@ -391,11 +391,9 @@ fn relay_pins_equal_the_typescript_pins() {
     assert_eq!(address(&relay["solver"]), SOLVER);
     assert_eq!(relay["solver_chain_id"], SOLVER_CHAIN_ID);
     let deposits = &relay["venue_deposits"];
-    assert_eq!(address(&deposits["polymarket"]), POLYMARKET_DEPOSIT);
     assert_eq!(address(&deposits["gmx"]), GMX_ROUTER);
     assert_eq!(address(&deposits["gmx_vault"]), GMX_VAULT);
-    assert_eq!(address(&deposits["aster"]), ASTER_VAULT);
-    assert_eq!(Some(ASTER_VAULT), deployments::venue_contract(&VenueId::Aster));
+    assert_eq!(address(&deposits["relay_credit"]), RELAY_CREDIT);
 
     let same = |ours: &RelayEndpoint, pinned: &Value| {
         let vm = match ours.vm {

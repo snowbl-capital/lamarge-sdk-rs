@@ -37,8 +37,8 @@ pub struct BridgeTerms {
 impl BridgeTerms {
     /// A bridge of `amount_in` (origin base units) for the move `request`, as the caller
     /// created it: its floor is its share of the move's `min_out`, rounded up; a Polymarket, GMX
-    /// or Aster account receives exactly the floor, at least the venue's minimum (Polymarket:
-    /// 5 pUSD). `recipient` is the move's.
+    /// or Aster account receives the whole output, at least the floor and the venue's minimum
+    /// (Polymarket: 5 pUSD). `recipient` is the move's.
     pub fn for_move(
         request: &MoveRequest,
         recipient: MoveRecipient,

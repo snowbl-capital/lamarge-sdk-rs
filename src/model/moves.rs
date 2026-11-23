@@ -184,10 +184,10 @@ pub struct BridgeQuote {
     pub amount_out: Amount,
     /// Guaranteed by the provider.
     pub minimum_out: Amount,
-    /// What a Polymarket, GMX or Aster account receives exactly.
+    /// The least a Polymarket, GMX or Aster account is credited; it is credited the whole output.
     #[serde(deserialize_with = "super::required")]
     pub account_credit: Option<Amount>,
-    /// The rest of the output, to the recipient's wallet on that chain, expected.
+    /// What reaches the recipient's wallet beside the account, expected: zero.
     #[serde(deserialize_with = "super::required")]
     pub wallet_surplus: Option<Amount>,
     /// Expected seconds to delivery.
@@ -290,13 +290,13 @@ pub struct Bridge {
     /// account, `spot` for a unified one. Absent from a server before it, which still reads.
     #[serde(default)]
     pub source_dex: Option<String>,
-    /// What a Polymarket, GMX or Aster account receives exactly.
+    /// The least a Polymarket, GMX or Aster account is credited; it is credited the whole output.
     #[serde(deserialize_with = "super::required")]
     pub account_credit: Option<Amount>,
     /// Delivered, once completed, in the destination token's base units.
     #[serde(deserialize_with = "super::required")]
     pub amount_out: Option<Amount>,
-    /// The output beyond `account_credit`, to the recipient's wallet.
+    /// What reached the recipient's wallet beside the account: zero.
     #[serde(deserialize_with = "super::required")]
     pub wallet_surplus: Option<Amount>,
     /// What the provider refunded, once refunded.

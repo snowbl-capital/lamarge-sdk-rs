@@ -36,14 +36,13 @@ pub(crate) const SOLVER: Address = address!("f70da97812cb96acdf810712aa562db8dfa
 /// The solver's chain.
 pub(crate) const SOLVER_CHAIN_ID: &str = "base";
 
-/// Polymarket Perps' deposit contract on Polygon (the escrow's `margin()`).
-pub(crate) const POLYMARKET_DEPOSIT: Address = deployments::POLYMARKET_WITHDRAW_CONTRACT;
-/// GMX's `MultichainTransferRouter` on Arbitrum.
+/// GMX's `MultichainTransferRouter` on Arbitrum: `bridgeIn` credits what its vault received.
 pub(crate) const GMX_ROUTER: Address = address!("3f6772b95423fc03264adf90efb8a9922b6c8c6e");
 /// GMX's multichain vault on Arbitrum.
 pub(crate) const GMX_VAULT: Address = address!("ceaadfaf6a8c489b250e407987877c5fdfcdbe6e");
-/// Aster's vault on BSC.
-pub(crate) const ASTER_VAULT: Address = address!("128463a60784c4d3f46c23af3f65ed859ba87974");
+/// LaMarge's `RelayCredit`, the same address on Polygon and BSC: it deposits the router's whole balance into a
+/// Polymarket or Aster account.
+pub(crate) const RELAY_CREDIT: Address = address!("2a9775e3e4b88b1b4f96a71bb53d2c74c25e9cae");
 
 /// How a Relay chain names accounts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -241,12 +240,11 @@ mod typed {
         }
 
         function approve(address spender, uint256 amount);
-        function transfer(address to, uint256 amount);
         function depositErc20(address depositor, address currency, uint256 amount, bytes32 id);
-        function deposit(address token, uint256 amount, address recipient);
         function bridgeIn(address account, address token);
-        function depositFor(address token, address recipient, uint256 amount, uint256 referral);
         function cleanupErc20s(address[] tokens, address[] recipients, uint256[] amounts, bytes data);
+        function cleanupErc20sViaCall(address[] tokens, address[] tos, bytes[] datas, uint256[] amounts);
+        function credit(address recipient, uint256 least);
     }
 }
 
@@ -479,41 +477,46 @@ fn call(to: Address, data: &[u8]) -> Bytes {
     out.into()
 }
 
-/// The calls the router runs to credit `recipient`'s account on `venue` (Polymarket, GMX,
-/// Aster) with exactly `amount`, then sweep the rest of the output to `recipient`'s wallet.
+/// The calls the router runs to credit `recipient`'s account on `venue` (Polymarket, GMX, Aster) with its whole
+/// balance of the venue's token, at least `least`, then sweep what any call left to `recipient`'s wallet.
 pub(crate) fn destination_calls(
     venue: &MoveVenue,
     recipient: Address,
-    amount: U256,
+    least: U256,
 ) -> Option<Vec<Bytes>> {
-    if amount.is_zero() {
+    if least.is_zero() {
         return None;
     }
     let token = account(venue)?.token()?;
-    let approve = |spender| typed::approveCall { spender, amount }.abi_encode();
-    let credit = match venue {
-        MoveVenue::Polymarket => [
-            call(token, &approve(POLYMARKET_DEPOSIT)),
-            call(POLYMARKET_DEPOSIT, &typed::depositCall { token, amount, recipient }.abi_encode()),
-        ],
-        MoveVenue::Gmx => [
-            call(token, &typed::transferCall { to: GMX_VAULT, amount }.abi_encode()),
+    // An amount of zero is the router's whole balance.
+    let sweep_to = |to| {
+        typed::cleanupErc20sCall {
+            tokens: vec![token],
+            recipients: vec![to],
+            amounts: vec![U256::ZERO],
+            data: Bytes::new(),
+        }
+        .abi_encode()
+    };
+    let mut calls = match venue {
+        MoveVenue::Gmx => vec![
+            call(ROUTER, &sweep_to(GMX_VAULT)),
             call(GMX_ROUTER, &typed::bridgeInCall { account: recipient, token }.abi_encode()),
         ],
-        MoveVenue::Aster => {
-            let deposit = typed::depositForCall { token, recipient, amount, referral: U256::ZERO };
-            [call(token, &approve(ASTER_VAULT)), call(ASTER_VAULT, &deposit.abi_encode())]
+        MoveVenue::Polymarket | MoveVenue::Aster => {
+            let credit = typed::creditCall { recipient, least }.abi_encode();
+            let deposit = typed::cleanupErc20sViaCallCall {
+                tokens: vec![token],
+                tos: vec![RELAY_CREDIT],
+                datas: vec![credit.into()],
+                amounts: vec![U256::ZERO],
+            };
+            vec![call(ROUTER, &deposit.abi_encode())]
         }
         _ => return None,
     };
-    // The router's whole remaining balance of `token`.
-    let sweep = typed::cleanupErc20sCall {
-        tokens: vec![token],
-        recipients: vec![recipient],
-        amounts: vec![U256::ZERO],
-        data: Bytes::new(),
-    };
-    Some(credit.into_iter().chain([call(ROUTER, &sweep.abi_encode())]).collect())
+    calls.push(call(ROUTER, &sweep_to(recipient)));
+    Some(calls)
 }
 
 /// Who a bridge delivers to.
@@ -549,7 +552,7 @@ pub(crate) struct Expectation<'a> {
     pub(crate) amount_in: U256,
     /// The part's floor, destination units.
     pub(crate) min_out: U256,
-    /// Polymarket, GMX, Aster accounts: the exact account credit.
+    /// Polymarket, GMX, Aster accounts: the least the account is credited.
     pub(crate) credit: Option<U256>,
 }
 
